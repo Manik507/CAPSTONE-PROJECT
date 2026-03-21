@@ -1,0 +1,1083 @@
+{
+    "info":  {
+                 "_postman_id":  "eventhub-collection",
+                 "name":  "EventHub API",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "event":  [
+                  {
+                      "listen":  "prerequest",
+                      "script":  {
+                                     "exec":  [
+                                                  "const now = Date.now();",
+                                                  "if (!pm.environment.get(\"org_email\") \u0026\u0026 !pm.collectionVariables.get(\"org_email\")) {",
+                                                  "  const orgEmail = `org_${now}@example.com`;",
+                                                  "  pm.environment.set(\"org_email\", orgEmail);",
+                                                  "  pm.collectionVariables.set(\"org_email\", orgEmail);",
+                                                  "}",
+                                                  "if (!pm.environment.get(\"att_email\") \u0026\u0026 !pm.collectionVariables.get(\"att_email\")) {",
+                                                  "  const attEmail = `att_${now}@example.com`;",
+                                                  "  pm.environment.set(\"att_email\", attEmail);",
+                                                  "  pm.collectionVariables.set(\"att_email\", attEmail);",
+                                                  "}",
+                                                  "if (!pm.environment.get(\"test_password\") \u0026\u0026 !pm.collectionVariables.get(\"test_password\")) {",
+                                                  "  pm.environment.set(\"test_password\", \"Test@123\");",
+                                                  "  pm.collectionVariables.set(\"test_password\", \"Test@123\");",
+                                                  "}"
+                                              ]
+                                 }
+                  }
+              ],
+    "item":  [
+                 {
+                     "name":  "Run All",
+                     "event":  [
+                                   {
+                                       "listen":  "prerequest",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "const now = Date.now();",
+                                                                   "if (!pm.environment.get(\"org_email\") \u0026\u0026 !pm.collectionVariables.get(\"org_email\")) {",
+                                                                   "  const orgEmail = `org_${now}@example.com`;",
+                                                                   "  pm.environment.set(\"org_email\", orgEmail);",
+                                                                   "  pm.collectionVariables.set(\"org_email\", orgEmail);",
+                                                                   "}",
+                                                                   "if (!pm.environment.get(\"att_email\") \u0026\u0026 !pm.collectionVariables.get(\"att_email\")) {",
+                                                                   "  const attEmail = `att_${now}@example.com`;",
+                                                                   "  pm.environment.set(\"att_email\", attEmail);",
+                                                                   "  pm.collectionVariables.set(\"att_email\", attEmail);",
+                                                                   "}",
+                                                                   "if (!pm.environment.get(\"test_password\") \u0026\u0026 !pm.collectionVariables.get(\"test_password\")) {",
+                                                                   "  pm.environment.set(\"test_password\", \"Test@123\");",
+                                                                   "  pm.collectionVariables.set(\"test_password\", \"Test@123\");",
+                                                                   "}"
+                                                               ]
+                                                  }
+                                   }
+                               ],
+                     "item":  [
+                                  {
+                                      "name":  "Auth - Register Organizer",
+                                      "event":  [
+                                                    {
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.environment.set(\"test_password\", \"Test@123\");",
+                                                                                    "pm.collectionVariables.set(\"test_password\", \"Test@123\");"
+                                                                                ]
+                                                                   },
+                                                        "listen":  "prerequest"
+                                                    },
+                                                    {
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "const json = pm.response.json();",
+                                                                                    "if (json \u0026\u0026 json.user \u0026\u0026 json.user.email) {",
+                                                                                    "  pm.environment.set(\"org_email\", json.user.email);",
+                                                                                    "  pm.collectionVariables.set(\"org_email\", json.user.email);",
+                                                                                    "}",
+                                                                                    "if (json \u0026\u0026 json.access_token) {",
+                                                                                    "  pm.environment.set(\"organizer_token\", json.access_token);",
+                                                                                    "  pm.collectionVariables.set(\"organizer_token\", json.access_token);",
+                                                                                    "}"
+                                                                                ]
+                                                                   },
+                                                        "listen":  "test"
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"full_name\": \"Organizer One\",\n  \"email\": \"org_{{$timestamp}}@example.com\",\n  \"password\": \"Test@123\",\n  \"role\": \"ORGANIZER\"\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/auth/register",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "auth",
+                                                                               "register"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Auth - Register Attendee",
+                                      "event":  [
+                                                    {
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.environment.set(\"test_password\", \"Test@123\");",
+                                                                                    "pm.collectionVariables.set(\"test_password\", \"Test@123\");"
+                                                                                ]
+                                                                   },
+                                                        "listen":  "prerequest"
+                                                    },
+                                                    {
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "const json = pm.response.json();",
+                                                                                    "if (json \u0026\u0026 json.user \u0026\u0026 json.user.email) {",
+                                                                                    "  pm.environment.set(\"att_email\", json.user.email);",
+                                                                                    "  pm.collectionVariables.set(\"att_email\", json.user.email);",
+                                                                                    "}",
+                                                                                    "if (json \u0026\u0026 json.access_token) {",
+                                                                                    "  pm.environment.set(\"attendee_token\", json.access_token);",
+                                                                                    "  pm.collectionVariables.set(\"attendee_token\", json.access_token);",
+                                                                                    "}"
+                                                                                ]
+                                                                   },
+                                                        "listen":  "test"
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"full_name\": \"Attendee One\",\n  \"email\": \"att_{{$timestamp}}@example.com\",\n  \"password\": \"Test@123\",\n  \"role\": \"ATTENDEE\"\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/auth/register",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "auth",
+                                                                               "register"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Auth - Login Organizer",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"{{org_email}}\",\n  \"password\": \"{{test_password}}\"\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/auth/login",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "auth",
+                                                                               "login"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "const json = pm.response.json();",
+                                                                                    "if (json \u0026\u0026 json.access_token) {",
+                                                                                    "  pm.environment.set(\"organizer_token\", json.access_token);",
+                                                                                    "}"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Auth - Login Attendee",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"{{att_email}}\",\n  \"password\": \"{{test_password}}\"\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/auth/login",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "auth",
+                                                                               "login"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "const json = pm.response.json();",
+                                                                                    "if (json \u0026\u0026 json.access_token) {",
+                                                                                    "  pm.environment.set(\"attendee_token\", json.access_token);",
+                                                                                    "}"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Categories - Create",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{organizer_token}}"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"name\": \"Tech\"\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/categories",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "categories"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Events - Create",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{organizer_token}}"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"AI Meetup\",\n  \"description\": \"Talks + networking\",\n  \"category\": \"Tech\",\n  \"date\": \"2026-04-01T18:30:00+05:30\",\n  \"venue\": \"Bangalore\",\n  \"max_capacity\": 50,\n  \"image_url\": \"https://example.com/banner.jpg\"\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/events",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "events"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "const json = pm.response.json();",
+                                                                                    "if (json \u0026\u0026 json.event \u0026\u0026 json.event.event_id) {",
+                                                                                    "  pm.environment.set(\"event_id\", json.event.event_id);",
+                                                                                    "}"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Events - List",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/events",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "events"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Events - Details",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/events/{{event_id}}",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "events",
+                                                                               "{{event_id}}"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Bookings - Create",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{attendee_token}}"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"event_id\": \"{{event_id}}\"\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/bookings",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "bookings"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "const json = pm.response.json();",
+                                                                                    "if (json \u0026\u0026 json.booking \u0026\u0026 json.booking.booking_id) {",
+                                                                                    "  pm.environment.set(\"booking_id\", json.booking.booking_id);",
+                                                                                    "}",
+                                                                                    "if (json \u0026\u0026 json.ticket \u0026\u0026 json.ticket.ticket_id) {",
+                                                                                    "  pm.environment.set(\"ticket_id\", json.ticket.ticket_id);",
+                                                                                    "}"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Bookings - My Bookings",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{attendee_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/bookings/user",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "bookings",
+                                                                               "user"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Events - Attendees (Organizer)",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{organizer_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/events/{{event_id}}/attendees",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "events",
+                                                                               "{{event_id}}",
+                                                                               "attendees"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Bookings - Cancel",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{attendee_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/bookings/{{booking_id}}",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "bookings",
+                                                                               "{{booking_id}}"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Notifications - Create",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{attendee_token}}"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"Welcome\",\n  \"message\": \"Thanks for joining EventHub!\"\n}"
+                                                               },
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/notifications",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "notifications"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "const json = pm.response.json();",
+                                                                                    "if (json \u0026\u0026 json.notification \u0026\u0026 json.notification.notification_id) {",
+                                                                                    "  pm.environment.set(\"notification_id\", json.notification.notification_id);",
+                                                                                    "}"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Notifications - List",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{attendee_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/notifications",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "notifications"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Notifications - Mark Read",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{attendee_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/notifications/{{notification_id}}/read",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "notifications",
+                                                                               "{{notification_id}}",
+                                                                               "read"
+                                                                           ]
+                                                              }
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Cleanup - Delete Event (Force)",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{organizer_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/events/{{event_id}}/force",
+                                                                  "host":  [
+                                                                               "{{base_url}}"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "events",
+                                                                               "{{event_id}}",
+                                                                               "force"
+                                                                           ]
+                                                              }
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Auth - Register Organizer",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.environment.set(\"test_password\", \"Test@123\");",
+                                                                   "pm.collectionVariables.set(\"test_password\", \"Test@123\");"
+                                                               ]
+                                                  },
+                                       "listen":  "prerequest"
+                                   },
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "const json = pm.response.json();",
+                                                                   "if (json \u0026\u0026 json.user \u0026\u0026 json.user.email) {",
+                                                                   "  pm.environment.set(\"org_email\", json.user.email);",
+                                                                   "  pm.collectionVariables.set(\"org_email\", json.user.email);",
+                                                                   "}",
+                                                                   "if (json \u0026\u0026 json.access_token) {",
+                                                                   "  pm.environment.set(\"organizer_token\", json.access_token);",
+                                                                   "  pm.collectionVariables.set(\"organizer_token\", json.access_token);",
+                                                                   "}"
+                                                               ]
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ],
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"full_name\": \"Organizer One\",\n  \"email\": \"org_{{$timestamp}}@example.com\",\n  \"password\": \"Test@123\",\n  \"role\": \"ORGANIZER\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/auth/register",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "auth",
+                                                              "register"
+                                                          ]
+                                             }
+                                 }
+                 },
+                 {
+                     "name":  "Auth - Register Attendee",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.environment.set(\"test_password\", \"Test@123\");",
+                                                                   "pm.collectionVariables.set(\"test_password\", \"Test@123\");"
+                                                               ]
+                                                  },
+                                       "listen":  "prerequest"
+                                   },
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "const json = pm.response.json();",
+                                                                   "if (json \u0026\u0026 json.user \u0026\u0026 json.user.email) {",
+                                                                   "  pm.environment.set(\"att_email\", json.user.email);",
+                                                                   "  pm.collectionVariables.set(\"att_email\", json.user.email);",
+                                                                   "}",
+                                                                   "if (json \u0026\u0026 json.access_token) {",
+                                                                   "  pm.environment.set(\"attendee_token\", json.access_token);",
+                                                                   "  pm.collectionVariables.set(\"attendee_token\", json.access_token);",
+                                                                   "}"
+                                                               ]
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ],
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"full_name\": \"Attendee One\",\n  \"email\": \"att_{{$timestamp}}@example.com\",\n  \"password\": \"Test@123\",\n  \"role\": \"ATTENDEE\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/auth/register",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "auth",
+                                                              "register"
+                                                          ]
+                                             }
+                                 }
+                 },
+                 {
+                     "name":  "Auth - Login Organizer",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"email\": \"{{org_email}}\",\n  \"password\": \"{{test_password}}\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/auth/login",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "auth",
+                                                              "login"
+                                                          ]
+                                             }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "const json = pm.response.json();",
+                                                                   "if (json \u0026\u0026 json.access_token) {",
+                                                                   "  pm.environment.set(\"organizer_token\", json.access_token);",
+                                                                   "}"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Auth - Login Attendee",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"email\": \"{{att_email}}\",\n  \"password\": \"{{test_password}}\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/auth/login",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "auth",
+                                                              "login"
+                                                          ]
+                                             }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "const json = pm.response.json();",
+                                                                   "if (json \u0026\u0026 json.access_token) {",
+                                                                   "  pm.environment.set(\"attendee_token\", json.access_token);",
+                                                                   "}"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Categories - List",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/categories",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "categories"
+                                                          ]
+                                             }
+                                 }
+                 },
+                 {
+                     "name":  "Categories - Create",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    },
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{organizer_token}}"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"name\": \"Tech\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/categories",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "categories"
+                                                          ]
+                                             }
+                                 }
+                 },
+                 {
+                     "name":  "Events - Create",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    },
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{organizer_token}}"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"title\": \"AI Meetup\",\n  \"description\": \"Talks + networking\",\n  \"category\": \"Tech\",\n  \"date\": \"2026-04-01T18:30:00+05:30\",\n  \"venue\": \"Bangalore\",\n  \"max_capacity\": 50,\n  \"image_url\": \"https://example.com/banner.jpg\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/events",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "events"
+                                                          ]
+                                             }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "const json = pm.response.json();",
+                                                                   "if (json \u0026\u0026 json.event \u0026\u0026 json.event.event_id) {",
+                                                                   "  pm.environment.set(\"event_id\", json.event.event_id);",
+                                                                   "}"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Events - List",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/events",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "events"
+                                                          ]
+                                             }
+                                 }
+                 },
+                 {
+                     "name":  "Events - Details",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/events/{{event_id}}",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "events",
+                                                              "{{event_id}}"
+                                                          ]
+                                             }
+                                 }
+                 },
+                 {
+                     "name":  "Events - Attendees (Organizer)",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{organizer_token}}"
+                                                    }
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/events/{{event_id}}/attendees",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "events",
+                                                              "{{event_id}}",
+                                                              "attendees"
+                                                          ]
+                                             }
+                                 }
+                 },
+                 {
+                     "name":  "Bookings - Create",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    },
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{attendee_token}}"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"event_id\": \"{{event_id}}\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/bookings",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "bookings"
+                                                          ]
+                                             }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "const json = pm.response.json();",
+                                                                   "if (json \u0026\u0026 json.booking \u0026\u0026 json.booking.booking_id) {",
+                                                                   "  pm.environment.set(\"booking_id\", json.booking.booking_id);",
+                                                                   "}",
+                                                                   "if (json \u0026\u0026 json.ticket \u0026\u0026 json.ticket.ticket_id) {",
+                                                                   "  pm.environment.set(\"ticket_id\", json.ticket.ticket_id);",
+                                                                   "}"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Bookings - My Bookings",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{attendee_token}}"
+                                                    }
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/bookings/user",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "bookings",
+                                                              "user"
+                                                          ]
+                                             }
+                                 }
+                 },
+                 {
+                     "name":  "Bookings - Cancel",
+                     "request":  {
+                                     "method":  "DELETE",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{attendee_token}}"
+                                                    }
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/bookings/{{booking_id}}",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "bookings",
+                                                              "{{booking_id}}"
+                                                          ]
+                                             }
+                                 }
+                 },
+                 {
+                     "name":  "Notifications - List",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{attendee_token}}"
+                                                    }
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/notifications",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "notifications"
+                                                          ]
+                                             }
+                                 }
+                 },
+                 {
+                     "name":  "Notifications - Create",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    },
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{attendee_token}}"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"title\": \"Welcome\",\n  \"message\": \"Thanks for joining EventHub!\"\n}"
+                                              },
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/notifications",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "notifications"
+                                                          ]
+                                             }
+                                 },
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "const json = pm.response.json();",
+                                                                   "if (json \u0026\u0026 json.notification \u0026\u0026 json.notification.notification_id) {",
+                                                                   "  pm.environment.set(\"notification_id\", json.notification.notification_id);",
+                                                                   "}"
+                                                               ]
+                                                  }
+                                   }
+                               ]
+                 },
+                 {
+                     "name":  "Notifications - Mark Read",
+                     "request":  {
+                                     "method":  "PUT",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Authorization",
+                                                        "value":  "Bearer {{attendee_token}}"
+                                                    }
+                                                ],
+                                     "url":  {
+                                                 "raw":  "{{base_url}}/notifications/{{notification_id}}/read",
+                                                 "host":  [
+                                                              "{{base_url}}"
+                                                          ],
+                                                 "path":  [
+                                                              "notifications",
+                                                              "{{notification_id}}",
+                                                              "read"
+                                                          ]
+                                             }
+                                 }
+                 }
+             ]
+}
