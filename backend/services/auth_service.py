@@ -4,15 +4,25 @@ from models.user import User
 from services.errors import ApiError
 
 
-ALLOWED_ROLES = {"ADMIN", "ORGANIZER", "ATTENDEE"}
+ALLOWED_ROLES = {"ADMIN", "INSTITUTE", "PARTICIPANT", "VOLUNTEER"}
 
 
-def register_user(db, email, password, role, full_name, allow_admin_registration=False):
+def register_user(db, email, username, password, role, full_name, phone_number=None, allow_admin_registration=False):
     email = (email or "").strip().lower()
     if not email or not password:
         raise ApiError("Email and password are required", status_code=400)
 
-    role = (role or "ATTENDEE").strip().upper()
+    username = (username or "").strip().lower()
+    if not username:
+        # Default to email slug if not provided
+        username = email.split('@')[0]
+    
+    # Check if username exists
+    existing_un = User.query.filter_by(username=username).first()
+    if existing_un:
+        raise ApiError("User with this username already exists.", status_code=409)
+
+    role = (role or "PARTICIPANT").strip().upper()
     if role not in ALLOWED_ROLES:
         raise ApiError("Invalid role", status_code=400, details={"allowed_roles": sorted(ALLOWED_ROLES)})
 
@@ -21,7 +31,6 @@ def register_user(db, email, password, role, full_name, allow_admin_registration
 
     existing = User.query.filter_by(email=email).first()
     if existing:
-        # Allow idempotent registration when password matches.
         if existing.check_password(password):
             return existing, False
         raise ApiError(
@@ -34,8 +43,16 @@ def register_user(db, email, password, role, full_name, allow_admin_registration
     full_name = (full_name or "").strip()
     if not full_name:
         raise ApiError("Full name is required", status_code=400, details={"field": "full_name"})
+        
+    phone_number = (phone_number or "").strip()
+    if role == "PARTICIPANT":
+        if not phone_number or len(phone_number) != 10:
+            raise ApiError("A valid 10-digit phone number is required for participants", status_code=400)
+    elif phone_number and len(phone_number) < 10:
+        # For non-participants, if they provide one, make it 10
+        raise ApiError("Phone number must be at least 10 digits", status_code=400)
 
-    user = User(email=email, role=role, full_name=full_name)
+    user = User(email=email, username=username, role=role, full_name=full_name, phone_number=phone_number)
     user.set_password(password)
 
     db.session.add(user)

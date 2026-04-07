@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EventHub Global Leaderboard – Top performers ranked by trophies and XP.">
+    <title>Leaderboard – EventHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Tab Styles */
+        .lb-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            padding: 0.35rem;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .lb-tab {
+            padding: 0.55rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            transition: background 0.2s, color 0.2s;
+        }
+        .lb-tab.active {
+            background: var(--accent-purple);
+            color: #fff;
+        }
+        .lb-tab:hover:not(.active) {
+            background: rgba(255,255,255,0.08);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+            <div class="navbar-links" id="main-nav"></div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>🏆 Global Leaderboard</h1>
+            <p>Top performers across all events and competitions</p>
+        </div>
+
+        <!-- My Rank -->
+        <div id="my-rank-section" class="hidden">
+            <div class="section-panel" style="max-width:600px;margin:0 auto 2rem;">
+                <div class="section-panel-body" style="display:flex;align-items:center;gap:1.5rem;">
+                    <div class="leaderboard-rank rank-default" id="my-rank-number" style="width:56px;height:56px;font-size:1.3rem;">-</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:700;font-size:1.1rem;">Your Rank</div>
+                        <div style="color:var(--text-muted);font-size:0.9rem;" id="my-rank-details">Login to see your rank</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:1.4rem;font-weight:800;" id="my-rank-xp">✨ 0 XP</div>
+                        <div style="font-size:1rem;color:var(--accent-amber);" id="my-rank-trophies">🏆 0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="lb-tabs">
+            <button class="lb-tab active" id="tab-trophies" onclick="switchTab('trophies')">🏆 Trophies</button>
+            <button class="lb-tab" id="tab-xp" onclick="switchTab('xp')">⚡ XP Points</button>
+        </div>
+
+        <div id="lb-loading" class="text-center"><div class="spinner"></div></div>
+
+        <div class="section-panel" id="lb-panel">
+            <ul class="leaderboard-list" id="lb-list"></ul>
+        </div>
+
+        <div id="lb-empty" class="empty-state hidden">
+            <div class="empty-icon">🏆</div>
+            <h3>No Entries Yet</h3>
+            <p>Participate in events to appear on the leaderboard!</p>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        let currentSort = 'trophies';
+
+        function switchTab(sort) {
+            currentSort = sort;
+            document.getElementById('tab-trophies').classList.toggle('active', sort === 'trophies');
+            document.getElementById('tab-xp').classList.toggle('active', sort === 'xp');
+            loadLeaderboard();
+        }
+
+        async function loadLeaderboard() {
+            document.getElementById('lb-loading').classList.remove('hidden');
+            document.getElementById('lb-panel').classList.add('hidden');
+            document.getElementById('lb-empty').classList.add('hidden');
+
+            try {
+                const data = await api.get(`/leaderboard/global?sort=${currentSort}`);
+                const entries = data.leaderboard || [];
+                document.getElementById('lb-loading').classList.add('hidden');
+
+                if (entries.length === 0) {
+                    document.getElementById('lb-empty').classList.remove('hidden');
+                    return;
+                }
+
+                document.getElementById('lb-panel').classList.remove('hidden');
+                const list = document.getElementById('lb-list');
+                list.innerHTML = '';
+
+                entries.forEach((entry, i) => {
+                    const rank = i + 1;
+                    const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-default';
+
+                    const li = document.createElement('li');
+                    li.className = 'leaderboard-item';
+
+                    // Highlight the primary sort metric
+                    const primaryStat = currentSort === 'trophies'
+                        ? `<div class="leaderboard-trophies" style="font-size:1.1rem;font-weight:800;">🏆 <span>${entry.trophies}</span></div>`
+                        : `<div class="leaderboard-xp" style="font-size:1.1rem;font-weight:800;">✨ <span>${entry.xp}</span> XP</div>`;
+
+                    const secondaryStat = currentSort === 'trophies'
+                        ? `<div class="leaderboard-xp" style="font-size:0.85rem;opacity:0.7;">✨ <span>${entry.xp}</span> XP</div>`
+                        : `<div class="leaderboard-trophies" style="font-size:0.85rem;opacity:0.7;">🏆 <span>${entry.trophies}</span></div>`;
+
+                    li.innerHTML = `
+                        <div class="leaderboard-rank ${rankClass}">${rank}</div>
+                        <div class="leaderboard-info">
+                            <div class="leaderboard-name">${entry.user_name || 'Anonymous'}</div>
+                        </div>
+                        <div class="leaderboard-stats">
+                            ${primaryStat}
+                            ${secondaryStat}
+                        </div>
+                    `;
+                    list.appendChild(li);
+                });
+
+            } catch (err) {
+                document.getElementById('lb-loading').classList.add('hidden');
+                document.getElementById('lb-empty').classList.remove('hidden');
+            }
+        }
+
+        async function loadMyRank() {
+            if (!api.isLoggedIn()) return;
+            try {
+                const data = await api.get('/leaderboard/me');
+                if (data.leaderboard) {
+                    const lb = data.leaderboard;
+                    document.getElementById('my-rank-section').classList.remove('hidden');
+                    document.getElementById('my-rank-number').textContent = `#${lb.rank || '-'}`;
+                    document.getElementById('my-rank-details').textContent = `🏆 ${lb.trophies} trophies • ✨ ${lb.xp} XP`;
+                    document.getElementById('my-rank-xp').textContent = `✨ ${lb.xp} XP`;
+                    document.getElementById('my-rank-trophies').textContent = `🏆 ${lb.trophies}`;
+                }
+            } catch (err) {}
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMyRank();
+            loadLeaderboard();
+            setInterval(() => {
+                loadMyRank();
+                loadLeaderboard();
+            }, 10000);
+        });
+    </script>
+</body>
+</html>

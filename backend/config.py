@@ -8,19 +8,9 @@ load_dotenv()
 
 
 class Config:
-    """
-    Centralized Flask configuration.
-
-    Environment variables supported (recommended):
-      - DATABASE_URL=postgresql://user:pass@host:5432/dbname
-      - JWT_SECRET_KEY=super-secret
-      - FLASK_ENV=development|production
-    """
-
     ENV = os.getenv("FLASK_ENV", "development")
     DEBUG = ENV != "production"
 
-    # Prefer a full DATABASE_URL; fall back to discrete parts if provided.
     _database_url = os.getenv("DATABASE_URL")
     if _database_url:
         SQLALCHEMY_DATABASE_URI = _database_url
@@ -36,14 +26,12 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # JWT
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-change-me")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "eventhub-super-secret-key-2026")
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(
         seconds=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", "86400"))
     )
 
-    # CORS
     CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
 
-    # Auth behavior
-    ALLOW_ADMIN_REGISTRATION = os.getenv("ALLOW_ADMIN_REGISTRATION", "false").lower() == "true"
+    # Allow admin registration via API (set to "true" in .env to enable)
+    ALLOW_ADMIN_REGISTRATION = os.getenv("ALLOW_ADMIN_REGISTRATION", "true").lower() == "true"

@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institute Dashboard – EventHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Leaflet Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Flatpickr for Prominent Date Selection -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- jsPDF for exporting participant data -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+
+            <div class="navbar-links" id="main-nav"></div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>🏛️ Institute Dashboard</h1>
+            <p id="welcome-msg">Manage your events</p>
+        </div>
+
+        <!-- Institute Application -->
+        <div id="apply-section" class="section-panel hidden">
+            <div class="section-panel-header"><h2>📋 Apply as Institute</h2></div>
+            <div class="section-panel-body">
+                <div id="apply-alert"></div>
+                <form id="apply-form">
+                    <div class="form-group">
+                        <label for="inst-name">Institute Name</label>
+                        <input type="text" id="inst-name" placeholder="e.g. MIT Engineering" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inst-email">Contact Email</label>
+                        <input type="email" id="inst-email" placeholder="contact@institute.edu" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inst-details">Details</label>
+                        <textarea id="inst-details" placeholder="Describe your institute…"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg">Submit Application</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Status Banner -->
+        <div id="status-banner" class="hidden"></div>
+
+        <!-- Approved Institute Content -->
+        <div id="institute-content" class="hidden">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="events-tab">📅 <span id="tab-events-label">My Events</span></button>
+                <button class="tab-btn role-institute-only" data-tab="create-tab">➕ Create Event</button>
+                <button class="tab-btn" data-tab="participants-tab">👥 Participants</button>
+                <button class="tab-btn" data-tab="updates-tab">📢 Post Update</button>
+                <button class="tab-btn role-institute-only" data-tab="results-tab">🏅 Result & Prizes</button>
+                <button class="tab-btn role-institute-only" data-tab="volunteers-tab">🛡️ Volunteers</button>
+                <button class="tab-btn role-institute-only" data-tab="profile-settings-tab">🏢 Institute Profile</button>
+            </div>
+
+            <!-- My Events Tab -->
+            <div class="tab-content active" id="events-tab">
+                <div id="events-loading" class="text-center"><div class="spinner"></div></div>
+                <div id="events-list"></div>
+                <div id="events-empty" class="empty-state hidden">
+                    <div class="empty-icon">📅</div>
+                    <h3>No Events Created</h3>
+                    <p>Create your first event to get started!</p>
+                </div>
+            </div>
+
+            <!-- Create Event Tab -->
+            <div class="tab-content" id="create-tab">
+                <div class="section-panel">
+                    <div class="section-panel-body">
+                        <div id="event-alert"></div>
+                        <form id="event-form">
+                            <div class="form-group">
+                                <label for="event-title">Event Title</label>
+                                <input type="text" id="event-title" placeholder="Hackathon 2026" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="event-desc">Description</label>
+                                <textarea id="event-desc" placeholder="Describe the event…"></textarea>
+                            </div>
+                            <div class="form-group-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                                <div class="form-group">
+                                    <label for="event-date" style="font-weight:700; color:var(--accent-blue);">Start Date & Time</label>
+                                    <input type="text" id="event-date" placeholder="🗓️ Click to select start date..." required style="padding: 12px; font-weight: bold; background: rgba(255,255,255,0.05); border: 2px solid var(--accent-blue);">
+                                </div>
+                                <div class="form-group">
+                                    <label for="event-end-date" style="font-weight:700; color:var(--accent-amber);">End Date & Time</label>
+                                    <input type="text" id="event-end-date" placeholder="🗓️ Click to select end date..." required style="padding: 12px; font-weight: bold; background: rgba(255,255,255,0.05); border: 2px solid var(--accent-amber);">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="event-location">Primary Venue / Location</label>
+                                <input type="text" id="event-location" placeholder="Auditorium A" required>
+                            </div>
+                            <!-- Map Picker -->
+                            <div class="form-group">
+                                <label>Venue Location on Map (Required)</label>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span class="map-picker-msg">📍 Click on the map to set the precise location.</span>
+                                    <button type="button" class="btn btn-sm btn-secondary" onclick="useCurrentLocation()">🌐 Use Current Location</button>
+                                </div>
+                                <div id="map-picker" class="map-container" style="margin-top: 10px;"></div>
+                                <input type="hidden" id="event-lat">
+                                <input type="hidden" id="event-lng">
+                            </div>
+                            <div class="form-group">
+                                <label for="event-extra-locations">Extra Locations (Optional)</label>
+                                <textarea id="event-extra-locations" placeholder="e.g. Workshop Room 2, Cafeteria (comma separated)"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="event-announcement">Initial Announcement / Welcome News</label>
+                                <textarea id="event-announcement" placeholder="e.g. Welcome to Hackathon 2026! We are excited to have you."></textarea>
+                            </div>
+                            <div class="form-group-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                                <div class="form-group">
+                                    <label for="event-rounds">Number of Rounds</label>
+                                    <input type="number" id="event-rounds" value="1" min="1" required>
+                                    <small class="opacity-60">Define how many elimination rounds this event has.</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="event-capacity">Total Capacity</label>
+                                    <input type="number" id="event-capacity" value="100" min="1" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="event-fees">Registration Fees (₹)</label>
+                                <input type="number" id="event-fees" value="0" min="0" required>
+                                <small class="opacity-60">Set 0 if the event is free. This fee is per participant.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="event-image">Upload Event Banner / Photo</label>
+                                <input type="file" id="event-image" accept="image/*">
+                                <small class="opacity-60">Admin will review this photo before approval</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg">Create Event</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Participants Tab -->
+            <div class="tab-content" id="participants-tab">
+                <div class="section-panel">
+                    <div class="section-panel-body">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label for="part-event">Select Event</label>
+                                <select id="part-event"><option value="">Select an event…</option></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="part-filter">Payment Status Filter (for PDF)</label>
+                                <select id="part-filter">
+                                    <option value="ALL">All Participants</option>
+                                    <option value="PAID">Paid Only</option>
+                                    <option value="UNPAID">Not Paid Only</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="participants-loading" class="hidden text-center"><div class="spinner"></div></div>
+                        <div id="participants-list"></div>
+                        <div id="participants-actions" class="mt-2 hidden">
+                            <button class="btn btn-secondary" onclick="exportParticipantsPDF()">📄 Export to PDF (with Filters)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Updates Tab -->
+            <div class="tab-content" id="updates-tab">
+                <div class="section-panel">
+                    <div class="section-panel-header"><h2>📢 Post Live Update</h2></div>
+                    <div class="section-panel-body">
+                        <p class="mb-2 opacity-70">Send a real-time message to all <strong>PAID</strong> participants of an event.</p>
+                        <form id="update-form">
+                            <div class="form-group">
+                                <label for="update-event">Select Event</label>
+                                <select id="update-event" required><option value="">Select an event…</option></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="update-msg">Message</label>
+                                <textarea id="update-msg" placeholder="e.g. The hackathon starts in 10 minutes! Check your email for the link." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg">Send Update</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Tab -->
+            <div class="tab-content" id="results-tab">
+                <div class="section-panel">
+                    <div class="section-panel-header"><h2>🏆 Event Results & prizes</h2></div>
+                    <div class="section-panel-body">
+                        <div class="form-group">
+                            <label for="results-event">Select Event</label>
+                            <select id="results-event" onchange="startResultsWorkflow(this.value)"><option value="">Select an event…</option></select>
+                        </div>
+                        <hr class="mb-3 mt-3">
+                        
+                        <!-- Step 1: Select -->
+                        <div id="results-step-1" class="hidden">
+                            <h3>Step 1: Select Winners</h3>
+                            <p class="mb-2 opacity-70">Check everyone who should be in the Hall of Fame.</p>
+                            <div id="results-participants-list" class="table-container mb-3"></div>
+                            <button class="btn btn-primary" onclick="goToResultsStep(2)">Next: Verify Selections &rarr;</button>
+                        </div>
+
+                        <!-- Step 2: Verify -->
+                        <div id="results-step-2" class="hidden">
+                            <h3>Step 2: Verify Selections</h3>
+                            <div id="results-verify-list" class="mb-3"></div>
+                            <div class="btn-group">
+                                <button class="btn btn-secondary" onclick="goToResultsStep(1)">&larr; Back</button>
+                                <button class="btn btn-primary" onclick="goToResultsStep(3)">Next: Enter Prize Details &rarr;</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Prize -->
+                        <div id="results-step-3" class="hidden">
+                            <h3>Step 3: Enter Prize Details</h3>
+                            <div id="results-prize-list" class="mb-3"></div>
+                            <div class="btn-group">
+                                <button class="btn btn-secondary" onclick="goToResultsStep(2)">&larr; Back</button>
+                                <button class="btn btn-success role-institute-only" onclick="submitResults()">Finalize & Publish Hall of Fame 🏆</button>
+                            </div>
+                            <div class="alert alert-info role-volunteer-only">ℹ️ Announcement can be done only by organization head.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Volunteers Tab -->
+            <div class="tab-content" id="volunteers-tab">
+                <div class="section-panel">
+                    <div class="section-panel-header"><h2>🛡️ Volunteer Management</h2></div>
+                    <div class="section-panel-body">
+                        <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem;">
+                            <div>
+                                <h3>Add Volunteer</h3>
+                                <form id="vol-form">
+                                    <div class="form-group">
+                                        <label for="vol-email">Email</label>
+                                        <input type="email" id="vol-email" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="vol-password">Password</label>
+                                        <input type="password" id="vol-password" minlength="6">
+                                        <small class="opacity-60">Required for new volunteers ONLY.</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="vol-name">Full Name</label>
+                                        <input type="text" id="vol-name">
+                                        <small class="opacity-60">Required for new volunteers ONLY.</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="vol-event">Assign to Event</label>
+                                        <select id="vol-event" required><option value="">Select event…</option></select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-full">Create Volunteer Account</button>
+                                </form>
+                            </div>
+                            <div>
+                                <h3>Existing Volunteers</h3>
+                                <div id="vol-list" class="table-container">
+                                    <div class="text-center opacity-50 py-2">Loading...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Settings Tab -->
+            <div class="tab-content" id="profile-settings-tab">
+                <div class="section-panel">
+                    <div class="section-panel-header"><h2>🏢 Institute Profile</h2></div>
+                    <div class="section-panel-body">
+                        <form id="inst-profile-form">
+                            <div class="form-group">
+                                <label for="inst-settings-name">Institute Name</label>
+                                <input type="text" id="inst-settings-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="inst-settings-email">Contact Email</label>
+                                <input type="email" id="inst-settings-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="inst-settings-details">Details</label>
+                                <textarea id="inst-settings-details"></textarea>
+                            </div>
+                            <button type="submit" id="inst-save-btn" class="btn btn-primary">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        if (!requireAuth(['INSTITUTE', 'VOLUNTEER'])) { /* redirected */ }
+
+        const currentUser = api.getUser();
+        
+        // Hide/Show role-specific elements
+        if (currentUser.role === 'VOLUNTEER') {
+            document.querySelectorAll('.role-institute-only').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.role-volunteer-only').forEach(el => el.classList.remove('role-volunteer-only'));
+            document.getElementById('tab-events-label').textContent = 'Assigned Events';
+        } else {
+            document.querySelectorAll('.role-volunteer-only').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.role-institute-only').forEach(el => el.classList.remove('role-institute-only'));
+        }
+
+        let myEvents = [];
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+                
+                // Initialize map if switching to create-tab
+                if (btn.dataset.tab === 'create-tab') {
+                    initMapPicker();
+                }
+                if (btn.dataset.tab === 'volunteers-tab') {
+                    loadVolunteers();
+                }
+                if (btn.dataset.tab === 'profile-settings-tab') {
+                    loadInstituteProfile();
+                }
+            });
+        });
+
+        let mapPicker;
+        let pickerMarker;
+
+        function initMapPicker() {
+            if (mapPicker) return;
+            // Default to a central location (e.g., Delhi, India)
+            const defaultPos = [28.6139, 77.2090];
+            mapPicker = L.map('map-picker').setView(defaultPos, 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(mapPicker);
+
+            mapPicker.on('click', (e) => {
+                const { lat, lng } = e.latlng;
+                if (pickerMarker) {
+                    pickerMarker.setLatLng(e.latlng);
+                } else {
+                    pickerMarker = L.marker(e.latlng).addTo(mapPicker);
+                }
+                document.getElementById('event-lat').value = lat;
+                document.getElementById('event-lng').value = lng;
+            });
+            
+            // Fix map size issues if hidden initially
+            setTimeout(() => mapPicker.invalidateSize(), 100);
+        }
+
+        function useCurrentLocation() {
+            if (!navigator.geolocation) {
+                showToast("Geolocation is not supported by your browser", "error");
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    if (mapPicker) {
+                        mapPicker.setView([lat, lng], 15);
+                        if (pickerMarker) {
+                            pickerMarker.setLatLng([lat, lng]);
+                        } else {
+                            pickerMarker = L.marker([lat, lng]).addTo(mapPicker);
+                        }
+                    }
+                    document.getElementById('event-lat').value = lat;
+                    document.getElementById('event-lng').value = lng;
+                    
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                        const data = await res.json();
+                        if (data && data.display_name) {
+                            document.getElementById('event-location').value = data.display_name;
+                        }
+                    } catch (e) {}
+                    showToast("Location updated successfully!", "success");
+                },
+                (error) => {
+                    showToast("Unable to retrieve your location. Please check browser permissions.", "error");
+                }
+            );
+        }
+
+        async function loadInstituteProfile() {
+            try {
+                const res = await api.get('/institutes/status');
+                const inst = res.institute;
+                if (inst) {
+                    document.getElementById('inst-settings-name').value = inst.name || '';
+                    document.getElementById('inst-settings-email').value = inst.email || '';
+                    document.getElementById('inst-settings-details').value = inst.details || '';
+                }
+            } catch (err) {
+                console.error('Failed to load institute profile', err);
+            }
+        }
+
+        document.getElementById('inst-profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('inst-save-btn');
+            const originalText = btn.textContent;
+            
+            try {
+                btn.textContent = 'Saving...';
+                btn.disabled = true;
+
+                const payload = {
+                    name: document.getElementById('inst-settings-name').value.trim(),
+                    email: document.getElementById('inst-settings-email').value.trim(),
+                    details: document.getElementById('inst-settings-details').value.trim()
+                };
+
+                await api.patch('/institutes/update', payload);
+                showToast('Institute profile updated! ✅', 'success');
+            } catch (err) {
+                showToast(err.message || 'Failed to update', 'error');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        async function refreshInstituteData() {
+            if (currentUser.role === 'VOLUNTEER') {
+                document.getElementById('apply-section').classList.add('hidden');
+                document.getElementById('status-banner').classList.add('hidden');
+                document.getElementById('institute-content').classList.remove('hidden');
+                await loadMyEvents();
+                return;
+            }
+            try {
+                const data = await api.get('/institutes/status');
+                if (!data.institute) {
+                    document.getElementById('apply-section').classList.remove('hidden');
+                    return;
+                }
+
+                const inst = data.institute;
+                const statusBanner = document.getElementById('status-banner');
+                const adminContent = document.getElementById('institute-content');
+
+                if (inst.approval_status === 'PENDING') {
+                    statusBanner.classList.remove('hidden');
+                    statusBanner.innerHTML = `<div class="alert alert-info">⏳ Your application is pending admin approval. Please wait…</div>`;
+                    adminContent.classList.add('hidden');
+                    return;
+                }
+                if (inst.approval_status === 'REJECTED') {
+                    statusBanner.classList.remove('hidden');
+                    statusBanner.innerHTML = `<div class="alert alert-error">❌ Your application was rejected. Contact support.</div>`;
+                    adminContent.classList.add('hidden');
+                    return;
+                }
+
+                // APPROVED
+                statusBanner.classList.add('hidden');
+                adminContent.classList.remove('hidden');
+                document.getElementById('apply-section').classList.add('hidden');
+                
+                await loadMyEvents();
+
+                // Refresh participants if an event is selected
+                const partEventId = document.getElementById('part-event').value;
+                if (partEventId) {
+                    const data = await api.get(`/participants/${partEventId}`);
+                    currentParticipants = data.participants || [];
+                    renderParticipants();
+                    document.getElementById('participants-actions').classList.remove('hidden');
+                } else {
+                    document.getElementById('participants-actions').classList.add('hidden');
+                }
+
+            } catch (err) {
+                document.getElementById('apply-section').classList.remove('hidden');
+            }
+        }
+
+        async function refreshParticipants(eventId) {
+            try {
+                const data = await api.get(`/participants/${eventId}`);
+                currentParticipants = data.participants || [];
+                renderParticipants();
+            } catch (err) {}
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = api.getUser();
+            document.getElementById('welcome-msg').textContent = `Welcome, ${user.full_name}`;
+
+            await refreshInstituteData();
+            // Poll every 10 seconds
+            setInterval(refreshInstituteData, 10000);
+        });
+
+        // Apply form
+        document.getElementById('apply-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                await api.post('/institutes/apply', {
+                    name: document.getElementById('inst-name').value.trim(),
+                    email: document.getElementById('inst-email').value.trim(),
+                    details: document.getElementById('inst-details').value.trim(),
+                });
+                showToast('Application submitted!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } catch (err) {
+                document.getElementById('apply-alert').innerHTML =
+                    `<div class="alert alert-error">❌ ${err.message || 'Failed'}</div>`;
+            }
+        });
+
+        // Load events
+        async function loadMyEvents() {
+            try {
+                const data = await api.get('/events/all');
+                myEvents = data.events || [];
+                document.getElementById('events-loading').classList.add('hidden');
+
+                // Populate event selects
+                const selects = [
+                    document.getElementById('part-event'),
+                    document.getElementById('update-event'),
+                    document.getElementById('results-event'),
+                    document.getElementById('vol-event')
+                ];
+                
+                // Filter for dropdowns
+                const now = new Date();
+                
+                // For Volunteers: 
+                // - Participants dropdown: Show ALL assigned events (even past ones for history)
+                // - Post Update dropdown: Only ACTIVE events
+                
+                const selectableEvents = myEvents.filter(ev => {
+                    return ev.approval_status === 'APPROVED';
+                });
+
+                selects.forEach(sel => {
+                    if (!sel) return;
+                    const currentValue = sel.value;
+                    const isUpdateSelect = sel.id === 'update-event';
+                    const isResultsSelect = sel.id === 'results-event';
+                    
+                    sel.innerHTML = '<option value="">Select an event…</option>';
+                    
+                    let filteredEvents = selectableEvents;
+                    if ((isUpdateSelect || isResultsSelect) && currentUser.role === 'VOLUNTEER') {
+                        filteredEvents = selectableEvents.filter(ev => {
+                            const isPast = ev.end_date ? new Date(ev.end_date) <= now : false;
+                            return !isPast;
+                        });
+                    }
+
+                    if (filteredEvents.length === 0) {
+                        sel.innerHTML = '<option value="">No events available</option>';
+                    } else {
+                        filteredEvents.forEach(ev => {
+                            sel.innerHTML += `<option value="${ev.id}">${ev.title}</option>`;
+                        });
+                    }
+                    // Restore previous selection if it still exists in the new list
+                    if (currentValue && filteredEvents.find(e => e.id == currentValue)) {
+                        sel.value = currentValue;
+                    }
+                });
+
+                if (myEvents.length === 0) {
+                    document.getElementById('events-empty').classList.remove('hidden');
+                    return;
+                }
+
+                const container = document.getElementById('events-list');
+                container.innerHTML = `<div class="table-container"><table>
+                    <thead><tr><th>Title</th><th>Date</th><th>Location</th><th>Capacity</th><th>Status</th></tr></thead>
+                    <tbody>
+                    ${myEvents.map(e => `
+                        <tr>
+                            <td><strong>${e.title}</strong></td>
+                            <td>${formatDate(e.date)}</td>
+                            <td>${e.location}</td>
+                            <td>${e.registered_count}/${e.capacity}</td>
+                            <td>${statusBadge(e.approval_status)}</td>
+                        </tr>
+                    `).join('')}
+                    </tbody>
+                </table></div>`;
+            } catch (err) {
+                document.getElementById('events-loading').classList.add('hidden');
+                document.getElementById('events-empty').classList.remove('hidden');
+            }
+        }
+
+        // Create event
+        document.getElementById('event-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const dateVal = document.getElementById('event-date').value;
+                const endDateVal = document.getElementById('event-end-date').value;
+                const lat = document.getElementById('event-lat').value;
+                const lng = document.getElementById('event-lng').value;
+
+                if (!lat || !lng) {
+                    showToast('Please select a location on the map', 'error');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('title', document.getElementById('event-title').value.trim());
+                formData.append('description', document.getElementById('event-desc').value.trim());
+                formData.append('date', new Date(dateVal).toISOString());
+                formData.append('end_date', new Date(endDateVal).toISOString());
+                formData.append('location', document.getElementById('event-location').value.trim());
+                formData.append('latitude', parseFloat(lat));
+                formData.append('longitude', parseFloat(lng));
+                formData.append('extra_locations', document.getElementById('event-extra-locations').value.trim());
+                formData.append('announcement', document.getElementById('event-announcement').value.trim());
+                formData.append('capacity', parseInt(document.getElementById('event-capacity').value) || 100);
+                formData.append('num_rounds', parseInt(document.getElementById('event-rounds').value) || 1);
+                formData.append('fees', parseInt(document.getElementById('event-fees').value) || 0);
+                
+                const imageFile = document.getElementById('event-image').files[0];
+                if (imageFile) {
+                    formData.append('image', imageFile);
+                }
+
+                const res = await fetch('/events/create', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${api.getToken()}`
+                    },
+                    body: formData
+                });
+                
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.message || 'Failed to create event');
+                }
+                showToast('Event created! Awaiting admin approval.', 'success');
+                document.getElementById('event-form').reset();
+                if (pickerMarker) {
+                    mapPicker.removeLayer(pickerMarker);
+                    pickerMarker = null;
+                }
+                loadMyEvents();
+            } catch (err) {
+                document.getElementById('event-alert').innerHTML =
+                    `<div class="alert alert-error">❌ ${err.message || 'Failed'}</div>`;
+            }
+        });
+
+        // Current list of participants for the selected event
+        let currentParticipants = [];
+
+        function renderParticipants() {
+            const filter = document.getElementById('part-filter').value;
+            const container = document.getElementById('participants-list');
+            const eventId = document.getElementById('part-event').value;
+            const event = myEvents.find(e => e.id == eventId);
+            
+            const now = new Date();
+            const isPast = event && event.end_date ? new Date(event.end_date) <= now : false;
+            const isVolunteer = currentUser.role === 'VOLUNTEER';
+            const hideActions = isVolunteer && isPast;
+            
+            let filtered = currentParticipants;
+            if (filter === 'PAID') {
+                filtered = currentParticipants.filter(p => (p.payment_status || '').toUpperCase() === 'PAID');
+            } else if (filter === 'UNPAID') {
+                filtered = currentParticipants.filter(p => (p.payment_status || '').toUpperCase() === 'UNPAID');
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><h3>No participants found for this criteria</h3></div>`;
+                return;
+            }
+
+            container.innerHTML = `<div class="table-container"><table>
+                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Payment</th><th>Reg ID</th><th>Registered</th>${hideActions ? '' : '<th>Actions</th>'}</tr></thead>
+                <tbody id="participant-table-body">
+                ${filtered.map(p => `
+                    <tr>
+                        <td>${p.user_name}</td>
+                        <td>${p.user_email}</td>
+                        <td>${p.user_phone || 'N/A'}</td>
+                        <td id="payment-badge-${p.id}">${statusBadge(p.payment_status)}</td>
+                        <td><code style="font-size:0.75rem;">${p.registration_id || '-'}</code></td>
+                        <td>${formatDate(p.created_at)}</td>
+                        ${hideActions ? '' : `
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="togglePayment(${p.id})">Toggle Payment</button>
+                        </td>`}
+                    </tr>
+                `).join('')}
+                </tbody>
+            </table></div>`;
+            document.getElementById('participants-actions').classList.remove('hidden');
+        }
+
+        // Filter change listener
+        document.getElementById('part-filter').addEventListener('change', () => {
+            if (currentParticipants.length > 0) renderParticipants();
+        });
+
+        // Load participants
+        document.getElementById('part-event').addEventListener('change', async (e) => {
+            const eventId = e.target.value;
+            if (!eventId) {
+                currentParticipants = [];
+                document.getElementById('participants-list').innerHTML = '';
+                document.getElementById('participants-actions').classList.add('hidden');
+                return;
+            }
+            
+            // Check if event is past for Volunteer
+            if (currentUser.role === 'VOLUNTEER') {
+                const event = myEvents.find(ev => ev.id == eventId);
+                const now = new Date();
+                if (event && event.end_date && new Date(event.end_date) <= now) {
+                    // Hide Post Update tab/option if needed? 
+                    // Actually the user said "all the selection options must be removed in participants and post update"
+                }
+            }
+
+            document.getElementById('participants-loading').classList.remove('hidden');
+            try {
+                const data = await api.get(`/participants/${eventId}`);
+                currentParticipants = data.participants || [];
+                document.getElementById('participants-loading').classList.add('hidden');
+                renderParticipants();
+            } catch (err) {
+                document.getElementById('participants-loading').classList.add('hidden');
+                showToast('Failed to load participants', 'error');
+            }
+        });
+
+
+        async function togglePayment(participantId) {
+            const badge = document.getElementById(`payment-badge-${participantId}`);
+            const originalHTML = badge.innerHTML;
+            const currentStatus = originalHTML.includes('badge-success') ? 'PAID' : 'UNPAID';
+            const nextStatus = currentStatus === 'PAID' ? 'UNPAID' : 'PAID';
+            
+            // Immediate UI update
+            badge.innerHTML = statusBadge(nextStatus);
+            
+            try {
+                const res = await api.post(`/participants/${participantId}/toggle-payment`);
+                showToast(res.message, 'success');
+                // Sync with server response just in case
+                badge.innerHTML = statusBadge(res.payment_status);
+                
+                // Update the local currentParticipants array
+                const p = currentParticipants.find(p => p.id === participantId);
+                if (p) p.payment_status = res.payment_status;
+
+                // Re-render if a filter is active to immediately remove/add based on status
+                const filter = document.getElementById('part-filter').value;
+                if (filter !== 'ALL') {
+                    renderParticipants();
+                }
+                
+            } catch (err) {
+                showToast(err.message || 'Error updating payment', 'error');
+                // Revert on failure
+                badge.innerHTML = originalHTML;
+            }
+        }
+
+        // Post Update Form
+        document.getElementById('update-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const eventId = document.getElementById('update-event').value;
+            const message = document.getElementById('update-msg').value.trim();
+
+            if (!eventId || !message) return;
+
+            try {
+                const res = await api.postEventUpdate(eventId, message);
+                showToast(res.message, 'success');
+                document.getElementById('update-form').reset();
+            } catch (err) {
+                showToast(err.message || 'Failed to post update', 'error');
+            }
+        });
+
+        // Results Workflow logic
+        let selectedResultsUsers = [];
+        let currentResultsStep = 1;
+
+        async function startResultsWorkflow(eventId) {
+            if (!eventId) {
+                document.getElementById('results-step-1').classList.add('hidden');
+                return;
+            }
+            goToResultsStep(1);
+            const list = document.getElementById('results-participants-list');
+            list.innerHTML = '<div class="spinner"></div>';
+
+            try {
+                const data = await api.get(`/participants/${eventId}`);
+                const parts = data.participants || [];
+                if (parts.length === 0) {
+                    list.innerHTML = '<p>No participants found for this event.</p>';
+                    return;
+                }
+
+                list.innerHTML = `
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Select</th><th>Name</th><th>Email</th><th>Phone</th><th>Payment</th></tr></thead>
+                            <tbody>
+                                ${parts.map(p => `
+                                    <tr>
+                                        <td><input type="checkbox" class="winner-check" data-uid="${p.user_id}" data-name="${p.user_name}"></td>
+                                        <td>${p.user_name}</td>
+                                        <td>${p.user_email}</td>
+                                        <td>${p.user_phone || 'N/A'}</td>
+                                        <td>${statusBadge(p.payment_status)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>`;
+                document.getElementById('results-step-1').classList.remove('hidden');
+            } catch (err) {
+                showToast('Error loading participants', 'error');
+            }
+        }
+
+        function goToResultsStep(step) {
+            currentResultsStep = step;
+            document.querySelectorAll('[id^="results-step-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`results-step-${step}`).classList.remove('hidden');
+
+            if (step === 2) {
+                const checked = document.querySelectorAll('.winner-check:checked');
+                selectedResultsUsers = Array.from(checked).map(c => ({
+                    id: c.dataset.uid,
+                    name: c.dataset.name
+                }));
+                const container = document.getElementById('results-verify-list');
+                if (selectedResultsUsers.length === 0) {
+                    container.innerHTML = '<div class="alert alert-error">No winners selected! Please go back to Step 1.</div>';
+                } else {
+                    container.innerHTML = `
+                        <div class="stat-card mb-2" style="background:rgba(59, 130, 246, 0.1);border:1px solid var(--accent-blue);">
+                            <div class="stat-label">Selected Participants</div>
+                            <div class="stat-value" style="font-size:1.2rem;">${selectedResultsUsers.length}</div>
+                        </div>
+                        <ul style="list-style:none;padding:0;">
+                            ${selectedResultsUsers.map(u => `<li style="padding:8px;border-bottom:1px solid var(--border-glass);">&rarr; ${u.name}</li>`).join('')}
+                        </ul>`;
+                }
+            } else if (step === 3) {
+                const container = document.getElementById('results-prize-list');
+                container.innerHTML = selectedResultsUsers.map((u, i) => `
+                    <div class="card mb-2 result-prize-item" data-uid="${u.id}">
+                        <div class="card-body">
+                            <h4 class="mb-2" style="color:var(--accent-blue);">🏆 ${u.name}</h4>
+                            <div style="display:grid;grid-template-columns:100px 1fr 1fr;gap:1rem;">
+                                <div class="form-group">
+                                    <label>Rank</label>
+                                    <input type="number" class="w-rank" value="${i+1}" min="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Prize Title</label>
+                                    <input type="text" class="w-prize-name" value="${i === 0 ? 'Winner' : i < 3 ? 'Runner Up' : 'Certificate'}" placeholder="e.g. Winner">
+                                </div>
+                                <div class="form-group">
+                                    <label>Prize Description</label>
+                                    <input type="text" class="w-prize-desc" placeholder="e.g. $500 Cash + Trophy">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function submitResults() {
+            const eventId = document.getElementById('results-event').value;
+            const winners = [];
+            document.querySelectorAll('.result-prize-item').forEach(item => {
+                winners.push({
+                    user_id: parseInt(item.dataset.uid),
+                    rank: parseInt(item.querySelector('.w-rank').value),
+                    prize_name: item.querySelector('.w-prize-name').value.trim() || 'Winner',
+                    prize_description: item.querySelector('.w-prize-desc').value.trim()
+                });
+            });
+
+            if (winners.length === 0) {
+                showToast('Please select at least one winner', 'error');
+                return;
+            }
+
+            try {
+                await api.setEventResults(eventId, winners);
+                showToast('Hall of Fame published successfully! 🏆', 'success');
+                // Reset
+                document.getElementById('results-event').value = '';
+                document.getElementById('results-step-1').classList.add('hidden');
+                document.getElementById('results-step-2').classList.add('hidden');
+                document.getElementById('results-step-3').classList.add('hidden');
+                loadMyEvents();
+            } catch (err) {
+                showToast(err.message || 'Failed to save results', 'error');
+            }
+        }
+
+        // ── Social & Search Logic ──
+        async function toggleFollow(userId, currentlyFollowing) {
+            try {
+                if (currentlyFollowing) await api.unfollowUser(userId);
+                else await api.followUser(userId);
+                showToast(currentlyFollowing ? 'Unfollowed' : 'Followed successfully! 🚀');
+                if (!document.getElementById('profile-modal').classList.contains('hidden')) viewProfile(userId);
+            } catch (err) { showToast('Action failed', 'error'); }
+        }
+
+        async function viewProfile(userId) {
+            try {
+                searchDropdown.classList.add('hidden');
+                const data = await api.getUserProfile(userId);
+                const p = data.profile;
+                document.getElementById('prof-name').textContent = p.full_name;
+                document.getElementById('prof-handle').textContent = `@${p.username}`;
+                
+                // Privacy/Contact logic
+                const emailEl = document.getElementById('prof-email');
+                const phoneEl = document.getElementById('prof-phone');
+                emailEl.textContent = p.email || 'N/A';
+                phoneEl.textContent = p.phone || 'N/A';
+                
+                // Colorize Private/N/A
+                emailEl.style.color = (p.email === 'Private' || !p.email) ? 'var(--accent-red)' : 'var(--accent-blue)';
+                phoneEl.style.color = (p.phone === 'Private' || !p.phone) ? 'var(--accent-red)' : 'var(--accent-blue)';
+
+                document.getElementById('prof-role').textContent = p.role;
+                document.getElementById('prof-xp').textContent = p.xp || 0;
+                document.getElementById('prof-trophies').textContent = p.trophies || 0;
+                document.getElementById('prof-followers').textContent = p.follower_count || 0;
+                document.getElementById('prof-following').textContent = p.following_count || 0;
+                const followBtn = document.getElementById('prof-follow-btn');
+                followBtn.textContent = p.is_following ? 'Unfollow' : 'Follow';
+                followBtn.className = `btn ${p.is_following ? 'btn-secondary' : 'btn-primary'}`;
+                followBtn.onclick = () => toggleFollow(p.id, p.is_following);
+                document.getElementById('profile-modal').classList.remove('hidden');
+            } catch (err) { showToast('Profile load failed', 'error'); }
+        }
+        function closeProfileModal() { document.getElementById('profile-modal').classList.add('hidden'); }
+
+        // Date Picker Restriction & Visible 12-hour Format
+        document.addEventListener('DOMContentLoaded', () => {
+            const endDatePicker = flatpickr("#event-end-date", {
+                enableTime: true,
+                minDate: "today",
+                dateFormat: "Y-m-d\\TH:i",
+                altInput: true,
+                altFormat: "F j, Y - h:i K"
+            });
+
+            flatpickr("#event-date", {
+                enableTime: true,
+                minDate: "today",
+                dateFormat: "Y-m-d\\TH:i",
+                altInput: true,
+                altFormat: "F j, Y - h:i K", // Human readable 12 hour format
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length > 0) {
+                        endDatePicker.set("minDate", selectedDates[0]);
+                    }
+                }
+            });
+        });
+
+        // Volunteer logic
+        async function loadVolunteers() {
+            const list = document.getElementById('vol-list');
+            try {
+                const data = await api.get('/institutes/volunteers/all');
+                const vols = data.volunteers || [];
+                if (vols.length === 0) {
+                    list.innerHTML = `<div class="text-center opacity-50 py-4">
+                        <div style="font-size:3rem; margin-bottom:1rem;">👥</div>
+                        <div style="font-weight:600;">No volunteers available</div>
+                        <div class="opacity-70">Add volunteers to help manage your events!</div>
+                    </div>`;
+                    return;
+                }
+                list.innerHTML = `<table>
+                    <thead><tr><th>Name</th><th>Email</th><th>Assigned Event</th></tr></thead>
+                    <tbody>
+                        ${vols.map(v => `
+                            <tr>
+                                <td>${v.user_name}</td>
+                                <td>${v.user_email}</td>
+                                <td>${v.event_title}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>`;
+            } catch (err) {
+                list.innerHTML = `
+                    <div class="text-center opacity-50 py-4">
+                        <div style="font-size:3rem; margin-bottom:1rem;">👥</div>
+                        <div style="font-weight:600;">No Volunteers Available</div>
+                        <div class="opacity-70">Try adding volunteers or check back later.</div>
+                    </div>
+                `;
+            }
+        }
+
+        document.getElementById('vol-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.textContent;
+            
+            try {
+                btn.textContent = 'Creating...';
+                btn.disabled = true;
+                
+                await api.post('/institutes/volunteers/create', {
+                    email: document.getElementById('vol-email').value.trim(),
+                    password: document.getElementById('vol-password').value,
+                    full_name: document.getElementById('vol-name').value.trim(),
+                    event_id: document.getElementById('vol-event').value
+                });
+                
+                showToast('Volunteer created successfully!', 'success');
+                e.target.reset();
+                loadVolunteers();
+            } catch (err) {
+                showToast(err.message || 'Failed to create volunteer', 'error');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // PDF Export Logic
+        async function exportParticipantsPDF() {
+            const eventId = document.getElementById('part-event').value;
+            const filter = document.getElementById('part-filter').value;
+            if (!eventId) return;
+            
+            const event = myEvents.find(e => e.id == eventId);
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            try {
+                const data = await api.get(`/participants/${eventId}`);
+                let parts = data.participants || [];
+                
+                // Apply Filter
+                if (filter === 'PAID') {
+                    parts = parts.filter(p => p.payment_status === 'PAID');
+                } else if (filter === 'UNPAID') {
+                    parts = parts.filter(p => p.payment_status === 'UNPAID');
+                }
+
+                // Add Header
+                doc.setFontSize(22);
+                doc.setTextColor(59, 130, 246);
+                doc.text("EventHub Participant Report", 14, 22);
+                
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Event: ${event.title}`, 14, 32);
+                doc.text(`Institute: ${event.institute_name}`, 14, 39);
+                doc.text(`Filter: ${filter === 'ALL' ? 'All Participants' : filter === 'PAID' ? 'Paid Only' : 'Not Paid Only'}`, 14, 46);
+                doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 53);
+                
+                // Add Table
+                const tableData = parts.map(p => [
+                    p.registration_id || "-",
+                    p.user_name,
+                    p.user_email,
+                    p.user_phone || "N/A",
+                    p.payment_status,
+                    new Date(p.created_at).toLocaleDateString()
+                ]);
+
+                doc.autoTable({
+                    startY: 60,
+                    head: [['Reg ID', 'Name', 'Email', 'Phone', 'Payment', 'Date']],
+                    body: tableData,
+                    theme: 'grid',
+                    headStyles: { fillColor: [59, 130, 246] }
+                });
+
+                doc.save(`participants_${event.title.replace(/\s+/g, '_')}_${filter.toLowerCase()}.pdf`);
+                showToast('PDF Exported Successfully!', 'success');
+            } catch (err) {
+                showToast('PDF Export failed', 'error');
+            }
+        }
+    </script>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h2>Entity Profile</h2>
+                <button class="close-btn" onclick="closeProfileModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="font-size: 4rem; margin-bottom: 10px;">👤</div>
+                <h3 id="prof-name" class="mb-0">Full Name</h3>
+                <p id="prof-handle" class="opacity-70 mb-2">@username</p>
+                <div id="prof-contact" class="mb-2" style="font-size: 0.85rem; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; display: inline-block; min-width: 200px; text-align: left;">
+                    <div style="margin-bottom:4px;">📧 <strong>Email:</strong> <span id="prof-email"></span></div>
+                    <div>📞 <strong>Phone:</strong> <span id="prof-phone"></span></div>
+                </div>
+                <div id="prof-role" class="badge badge-pending mb-3">ROLE</div>
+                <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                    <div class="stat-card" style="padding: 10px;">
+                        <div class="stat-value" id="prof-xp" style="font-size: 1.2rem;">0</div>
+                        <div class="stat-label">XP</div>
+                    </div>
+                    <div class="stat-card" style="padding: 10px;">
+                        <div class="stat-value" id="prof-trophies" style="font-size: 1.2rem;">0</div>
+                        <div class="stat-label">Trophies</div>
+                    </div>
+                </div>
+                <div class="mb-3" style="display: flex; justify-content: space-around; font-size: 0.9rem;">
+                    <div><strong id="prof-followers">0</strong><br><span class="opacity-70">Followers</span></div>
+                    <div><strong id="prof-following">0</strong><br><span class="opacity-70">Following</span></div>
+                </div>
+                <button id="prof-follow-btn" class="btn btn-primary w-full">Follow</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

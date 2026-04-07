@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard – EventHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+
+            <div class="navbar-links" id="main-nav"></div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>🎮 Participant Dashboard</h1>
+            <p id="welcome-msg">Welcome back!</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="dashboard-grid" id="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🎪</div>
+                <div class="stat-value" id="my-events-count">0</div>
+                <div class="stat-label">Events Joined</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-value" id="my-xp">0</div>
+                <div class="stat-label">Total XP</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-value" id="my-trophies">0</div>
+                <div class="stat-label">Trophies</div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="card mb-2" id="notifications-panel">
+            <div class="card-body">
+                <h2 class="mb-1">🔔 Notifications <span id="notif-count" class="badge badge-pending hidden">0</span></h2>
+                <div id="notif-list" class="notif-list">
+                    <div class="text-center py-1">Loading...</div>
+                </div>
+                <div id="notif-view-all" class="text-center mt-1 hidden">
+                    <button class="btn btn-sm btn-secondary" onclick="markAllAsRead()">Clear All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Legacy (Rewards) -->
+        <div class="card mb-3 hidden" id="legacy-panel">
+            <div class="card-body">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <h2 class="mb-0">📜 My Legacy <span class="badge badge-success" id="new-rewards-badge" style="display:none;">New Rewards!</span></h2>
+                    <a href="legacy.html" class="btn btn-sm btn-secondary">View Full History &rarr;</a>
+                </div>
+                <div id="legacy-list" class="notif-list" style="max-height:300px;overflow-y:auto;">
+                    <div class="text-center py-1 opacity-50">No rewards yet. Win events to earn XP!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Events -->
+        <div class="section-panel">
+            <div class="section-panel-header">
+                <h2>📋 My Registered Events</h2>
+                <a href="index.html" class="btn btn-primary btn-sm">Browse Events</a>
+            </div>
+            <div class="section-panel-body">
+                <div id="my-events-loading" class="text-center"><div class="spinner"></div></div>
+                <div id="my-events-list"></div>
+                <div id="my-events-empty" class="empty-state hidden">
+                    <div class="empty-icon">🎪</div>
+                    <h3>No Events Yet</h3>
+                    <p>Browse and register for events to get started!</p>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        if (!requireAuth(['PARTICIPANT'])) { /* redirected */ }
+
+        async function loadNotifications() {
+            try {
+                const data = await api.getNotifications();
+                const list = data.notifications || [];
+                const container = document.getElementById('notif-list');
+                const countBadge = document.getElementById('notif-count');
+                
+                const unread = list.filter(n => !n.is_read);
+                if (unread.length > 0) {
+                    countBadge.textContent = unread.length;
+                    countBadge.classList.remove('hidden');
+                } else {
+                    countBadge.classList.add('hidden');
+                }
+
+                if (list.length === 0) {
+                    container.innerHTML = '<div class="text-center py-1 opacity-50">No notifications</div>';
+                    document.getElementById('notif-view-all').classList.add('hidden');
+                } else {
+                    container.innerHTML = list.map(n => `
+                        <div class="notif-item ${n.is_read ? '' : 'unread'}" onclick="markAsRead(${n.id})">
+                            <div class="notif-title">${n.type === 'EVENT_APPROVAL' ? '🎉' : '📢'} ${n.title}</div>
+                            <div class="notif-msg">${n.message}</div>
+                            <div class="notif-time">${formatDateTime(n.created_at)}</div>
+                        </div>
+                    `).join('');
+                    document.getElementById('notif-view-all').classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error('Failed to load notifications', err);
+            }
+        }
+
+        async function markAsRead(id) {
+            try {
+                await api.markRead(id);
+                loadNotifications();
+            } catch (err) {
+                console.error('Failed to mark as read', err);
+            }
+        }
+
+        async function markAllAsRead() {
+            // Simple approach: mark visible unread as read
+            const container = document.getElementById('notif-list');
+            const unreadItems = container.querySelectorAll('.notif-item.unread');
+            loadNotifications();
+        }
+
+        async function loadRewardHistory() {
+            try {
+                // First, sync rewards (Participation)
+                const sync = await api.syncRewards();
+                if (sync.new_rewards && sync.new_rewards.length > 0) {
+                    showToast(`🎉 You earned ${sync.new_rewards.length} new rewards! Check My Legacy.`, 'success');
+                }
+
+                const data = await api.getRewardHistory();
+                const list = data.history || [];
+                const container = document.getElementById('legacy-list');
+                const panel = document.getElementById('legacy-panel');
+
+                if (list.length > 0) {
+                    panel.classList.remove('hidden');
+                    container.innerHTML = list.map(h => `
+                        <div class="notif-item" style="border-left: 3px solid ${h.reward_type === 'WINNING' ? 'var(--accent-amber)' : 'var(--accent-green)'};">
+                            <div class="notif-title" style="color:var(--text-primary); font-weight:600;">
+                                ${h.reward_type === 'WINNING' ? '🏆' : '⭐'} ${h.description}
+                            </div>
+                            <div class="notif-msg" style="font-size:0.85rem; opacity:0.8;">
+                                ${h.xp_awarded > 0 ? `+${h.xp_awarded} XP ` : ''}
+                                ${h.trophies_awarded > 0 ? `+${h.trophies_awarded} Trophy` : ''}
+                            </div>
+                            <div class="notif-time">${formatDateTime(h.created_at)}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error('Failed to load rewards', err);
+            }
+        }
+
+        async function refreshDashboard() {
+            loadNotifications();
+            // Load my events
+            try {
+                const data = await api.get('/my-events');
+                const events = data.events || [];
+                document.getElementById('my-events-loading').classList.add('hidden');
+                document.getElementById('my-events-count').textContent = events.length;
+
+                if (events.length === 0) {
+                    document.getElementById('my-events-empty').classList.remove('hidden');
+                    document.getElementById('my-events-list').innerHTML = '';
+                } else {
+                    document.getElementById('my-events-empty').classList.add('hidden');
+                    const container = document.getElementById('my-events-list');
+                    container.innerHTML = `<div class="cards-grid">
+                        ${events.map(e => `
+                            <div class="card">
+                                <div class="card-body">
+                                    <h3>${e.title}</h3>
+                                    <div class="card-meta" style="margin-bottom: 0.5rem;">
+                                        <span>📅 ${formatDate(e.date)}</span>
+                                        <span>📍 ${e.location}</span>
+                                    </div>
+                                    <div class="badge badge-success mb-1" style="font-size:0.75rem; background:rgba(16, 185, 129, 0.1); border:1px solid var(--accent-green); color:var(--accent-green); font-family:monospace;">
+                                        ID: ${e.registration_id || 'PENDING'}
+                                    </div>
+                                    <div class="btn-group mt-1">
+                                        <a href="event.html?id=${e.id}" class="btn btn-secondary btn-sm">View</a>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>`;
+                }
+            } catch (err) {
+                document.getElementById('my-events-loading').classList.add('hidden');
+            }
+
+            // Load leaderboard entry
+            try {
+                const data = await api.get('/leaderboard/me');
+                if (data.leaderboard) {
+                    document.getElementById('my-xp').textContent = data.leaderboard.xp;
+                    document.getElementById('my-trophies').textContent = data.leaderboard.trophies;
+                }
+            } catch (err) {}
+
+            // Load reward history
+            loadRewardHistory();
+        }
+
+
+
+        async function toggleFollow(userId, currentlyFollowing) {
+            try {
+                if (currentlyFollowing) {
+                    await api.unfollowUser(userId);
+                    showToast('Unfollowed successfully');
+                } else {
+                    await api.followUser(userId);
+                    showToast('Followed successfully! 🎉');
+                }
+                // Also refresh profile modal if open
+
+                if (!document.getElementById('profile-modal').classList.contains('hidden')) {
+                    viewProfile(userId);
+                }
+            } catch (err) {
+                showToast(err.message || 'Action failed', 'error');
+            }
+        }
+
+        async function viewProfile(userId) {
+            try {
+                searchDropdown.classList.add('hidden');
+                const data = await api.getUserProfile(userId);
+                const p = data.profile;
+                
+                document.getElementById('prof-name').textContent = p.full_name;
+                document.getElementById('prof-handle').textContent = `@${p.username}`;
+                document.getElementById('prof-role').textContent = p.role;
+                
+                const isInst = p.role === 'INSTITUTE';
+                const isAdmin = p.role === 'ADMIN';
+                const xpCard = document.getElementById('prof-xp').closest('.stat-card');
+                const trophyCard = document.getElementById('prof-trophies').closest('.stat-card');
+                const historyWrapper = document.getElementById('history-label-wrapper'); // I'll add this ID below
+                
+                if (isInst || isAdmin) {
+                    xpCard.style.display = 'none';
+                    trophyCard.style.display = 'none';
+                } else {
+                    xpCard.style.display = 'block';
+                    trophyCard.style.display = 'block';
+                    document.getElementById('prof-xp').textContent = p.xp || 0;
+                    document.getElementById('prof-trophies').textContent = p.trophies || 0;
+                }
+
+                if (isAdmin && historyWrapper) {
+                    historyWrapper.style.display = 'none';
+                } else if (historyWrapper) {
+                    historyWrapper.style.display = 'block';
+                }
+
+                document.getElementById('prof-followers').textContent = p.follower_count || 0;
+                document.getElementById('prof-following').textContent = p.following_count || 0;
+                
+                const followBtn = document.getElementById('prof-follow-btn');
+                followBtn.textContent = p.is_following ? 'Unfollow' : 'Follow';
+                followBtn.className = `btn ${p.is_following ? 'btn-secondary' : 'btn-primary'}`;
+                followBtn.onclick = () => toggleFollow(p.id, p.is_following);
+                
+                document.getElementById('profile-modal').classList.remove('hidden');
+            } catch (err) {
+                showToast('Could not load profile', 'error');
+            }
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profile-modal').classList.add('hidden');
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = api.getUser();
+            document.getElementById('welcome-msg').textContent = `Welcome, ${user.full_name}!`;
+
+            refreshDashboard();
+            // Poll every 10 seconds
+            setInterval(refreshDashboard, 10000);
+        });
+    </script>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h2>User Profile</h2>
+                <button class="close-btn" onclick="closeProfileModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="font-size: 4rem; margin-bottom: 10px;">👤</div>
+                <h3 id="prof-name" class="mb-0">Full Name</h3>
+                <p id="prof-handle" class="opacity-70 mb-2">@username</p>
+                <div id="prof-role" class="badge badge-pending mb-3">ROLE</div>
+                
+                <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                    <div class="stat-card" style="padding: 10px;">
+                        <div class="stat-value" id="prof-xp" style="font-size: 1.2rem;">0</div>
+                        <div class="stat-label">XP</div>
+                    </div>
+                    <div class="stat-card" style="padding: 10px;">
+                        <div class="stat-value" id="prof-trophies" style="font-size: 1.2rem;">0</div>
+                        <div class="stat-label">Trophies</div>
+                    </div>
+                </div>
+
+                <div class="mb-3" style="display: flex; justify-content: space-around; font-size: 0.9rem;">
+                    <div><strong id="prof-followers">0</strong><br><span class="opacity-70">Followers</span></div>
+                    <div><strong id="prof-following">0</strong><br><span class="opacity-70">Following</span></div>
+                </div>
+
+                <button id="prof-follow-btn" class="btn btn-primary w-full">Follow</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

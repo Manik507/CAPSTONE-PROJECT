@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institute Application – EventHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .institute-theme {
+            background: linear-gradient(135deg, #1e1e2f 0%, #151520 100%);
+            border: 1px solid #4a90e2;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+            <div class="navbar-links" id="main-nav"></div>
+        </div>
+    </nav>
+
+    <div class="form-container" style="margin-top: 2rem;">
+        <div class="form-card institute-theme" style="max-width: 500px;">
+            <h2 style="color: #4a90e2;">🏛️ Institute Application</h2>
+            <p class="subtitle">Register your Institute to organize events</p>
+
+            <div id="reg-alert"></div>
+
+            <form id="register-form">
+                <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #a0a0b0;">1. Organizer Account</h3>
+                <div class="form-group">
+                    <label for="full_name">Your Full Name</label>
+                    <input type="text" id="full_name" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label for="username">Username (@handle)</label>
+                    <input type="text" id="username" placeholder="mit_eng" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone_number">Your Phone Number</label>
+                    <input type="text" id="phone_number" placeholder="10 Digits" required pattern="[0-9]{10}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Must be exactly 10 digits">
+                </div>
+                <div class="form-group">
+                    <label for="email">Account Email</label>
+                    <input type="email" id="email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Min 6 characters" required minlength="6">
+                </div>
+
+                <hr style="border-color: #333; margin: 1.5rem 0;">
+
+                <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #a0a0b0;">2. Institute Details</h3>
+                <div class="form-group">
+                    <label for="inst-name">Official Institute Name</label>
+                    <input type="text" id="inst-name" placeholder="e.g. MIT Engineering" required>
+                </div>
+                <div class="form-group">
+                    <label for="inst-email">Official Contact Email</label>
+                    <input type="email" id="inst-email" placeholder="contact@institute.edu" required>
+                </div>
+                <div class="form-group">
+                    <label for="inst-details">Verification Details (Website URL / Proof)</label>
+                    <textarea id="inst-details" placeholder="Please provide your institute website or verification details so Admins can verify your authenticity…" required style="height: 80px;"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full btn-lg" id="reg-btn" style="background: #4a90e2; border-color: #4a90e2;">🚀 Apply Now</button>
+            </form>
+
+            <div class="form-footer mt-2">
+                Already applied? <a href="institute-login.html">Login here</a><br><br>
+                Are you a Participant? <a href="register.html">Participant Registration</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('reg-btn');
+            btn.disabled = true;
+            btn.textContent = 'Submitting Application…';
+
+            try {
+                // 1. Create Account
+                const data = await api.post('/auth/register', {
+                    full_name: document.getElementById('full_name').value.trim(),
+                    username: document.getElementById('username').value.trim(),
+                    phone_number: document.getElementById('phone_number').value.trim(),
+                    email: document.getElementById('email').value.trim(),
+                    password: document.getElementById('password').value,
+                    role: 'INSTITUTE',
+                });
+
+                api.setAuth(data.access_token, data.user);
+                
+                // 2. Submit Institute Application immediately
+                await api.post('/institutes/apply', {
+                    name: document.getElementById('inst-name').value.trim(),
+                    email: document.getElementById('inst-email').value.trim(),
+                    details: document.getElementById('inst-details').value.trim(),
+                });
+
+                showToast('Application submitted successfully!', 'success');
+
+                setTimeout(() => {
+                    window.location.href = 'institute-dashboard.html';
+                }, 1000);
+
+            } catch (err) {
+                document.getElementById('reg-alert').innerHTML =
+                    `<div class="alert alert-error">❌ ${err.message || 'Application failed. Email might be taken.'}</div>`;
+                btn.disabled = false;
+                btn.textContent = '🚀 Apply Now';
+            }
+        });
+    </script>
+</body>
+</html>
