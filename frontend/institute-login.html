@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institute Login – EventHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .institute-theme {
+            background: linear-gradient(135deg, #1e1e2f 0%, #151520 100%);
+            border: 1px solid #4a90e2;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+            <div class="navbar-links" id="main-nav"></div>
+        </div>
+    </nav>
+
+    <div class="form-container" style="margin-top: 4rem;">
+        <div class="form-card institute-theme">
+            <h2 style="color: #4a90e2;">🏛️ Institute Portal Login</h2>
+            <p class="subtitle">Access your Organizer Dashboard</p>
+
+            <div id="login-alert"></div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">Account Email</label>
+                    <input type="email" id="email" placeholder="you@institute.edu" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-full btn-lg" id="login-btn" style="background: #4a90e2;">🔒 Login</button>
+            </form>
+
+            <div class="form-footer mt-2">
+                New Institute? <a href="institute-register.html">Apply for an Account</a><br><br>
+                Are you a Participant? <a href="login.html">Participant Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true;
+            btn.textContent = 'Logging in…';
+
+            try {
+                const data = await api.post('/auth/login', {
+                    email: document.getElementById('email').value.trim(),
+                    password: document.getElementById('password').value,
+                    portal: 'INSTITUTE'
+                });
+
+                const role = data.user.role;
+                if (role === 'PARTICIPANT') {
+                    throw new Error("Invalid login for Institute Portal");
+                }
+
+                api.setAuth(data.access_token, data.user);
+                showToast('Login successful!', 'success');
+
+                setTimeout(() => {
+                    if (role === 'ADMIN') window.location.href = 'admin-dashboard.html';
+                    else window.location.href = 'institute-dashboard.html';
+                }, 500);
+
+            } catch (err) {
+                document.getElementById('login-alert').innerHTML =
+                    `<div class="alert alert-error">❌ ${err.message || 'Login failed'}</div>`;
+                btn.disabled = false;
+                btn.textContent = '🔒 Login';
+            }
+        });
+    </script>
+</body>
+</html>

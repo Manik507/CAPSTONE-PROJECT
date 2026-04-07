@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile – EventHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+            <div class="navbar-links" id="main-nav"></div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>👤 My Profile</h1>
+            <p>Manage your account and view your legacy</p>
+        </div>
+
+        <div class="dashboard-grid" style="grid-template-columns: 1fr 1.5fr; gap: 2rem;">
+            <!-- Left: Edit Profile -->
+            <div>
+                <div class="card">
+                    <div class="card-body">
+                        <div style="text-align: center; margin-bottom: 1.5rem;">
+                            <div style="font-size: 5rem;">👤</div>
+                            <h2 id="display-name">Loading...</h2>
+                            <p id="display-username" class="opacity-70">@username</p>
+                            <p id="display-email" class="opacity-60" style="font-size: 0.9rem; margin-top: 5px;">email@example.com</p>
+                            <button type="button" class="btn btn-secondary btn-sm mt-2" id="edit-toggle-btn">✏️ Edit Profile</button>
+                        </div>
+                        
+                        <form id="profile-form">
+                            <div class="form-group">
+                                <label for="pf-full-name">Full Name</label>
+                                <input type="text" id="pf-full-name" class="form-control" required disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="pf-username">Username</label>
+                                <input type="text" id="pf-username" class="form-control" required disabled>
+                                <small class="opacity-60">Must be unique across EventHub</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="pf-email">Email Address</label>
+                                <input type="email" id="pf-email" class="form-control" disabled>
+                                <small class="opacity-60">Email cannot be changed</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="pf-phone">Phone Number</label>
+                                <input type="text" id="pf-phone" class="form-control" required maxlength="10" disabled>
+                                <small id="phone-hint" class="opacity-60">Must be 10 digits</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-full hidden" id="save-btn">💾 Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Stats & History -->
+            <div>
+                <div class="dashboard-grid" id="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                    <div class="stat-card clickable" onclick="showList('followers')">
+                        <div class="stat-value" id="count-followers">0</div>
+                        <div class="stat-label">👥 Followers</div>
+                    </div>
+                    <div class="stat-card clickable" onclick="showList('following')">
+                        <div class="stat-value" id="count-following">0</div>
+                        <div class="stat-label">🤝 Following</div>
+                    </div>
+                    <div class="stat-card role-participant-only">
+                        <div class="stat-value" id="stat-xp">✨ 0</div>
+                        <div class="stat-label">Total XP</div>
+                    </div>
+                    <div class="stat-card role-participant-only">
+                        <div class="stat-value" id="stat-trophies">🏆 0</div>
+                        <div class="stat-label">Trophies</div>
+                    </div>
+                </div>
+
+                <div class="section-panel">
+                    <div class="section-panel-header">
+                        <h2 id="history-title">📜 Competition History</h2>
+                    </div>
+                    <div class="section-panel-body">
+                        <div id="history-list" class="notif-list">
+                            <div class="text-center py-2 opacity-50">Fetching your legacy...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User List Modal (Followers/Following) -->
+    <div id="list-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2 id="modal-title">Users</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-list" style="max-height: 400px; overflow-y: auto;">
+                <!-- Items here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Entity Details Modal (for Admins viewing logs) -->
+    <div id="details-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 700px; text-align: left;">
+            <div class="section-panel-header">
+                <h2 id="details-title">Details</h2>
+                <button class="btn-close" onclick="closeDetailsModal()">&times;</button>
+            </div>
+            <div class="section-panel-body" id="details-body" style="padding: 1.5rem;">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer" style="padding: 1rem 1.5rem; text-align: right; border-top: 1px solid var(--border-glass);">
+                <button class="btn btn-secondary" onclick="closeDetailsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
+        }
+        .details-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 0.75rem; margin-top: 1rem; }
+        .details-label { font-weight: 600; opacity: 0.6; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .details-value { font-weight: 500; font-size: 0.95rem; }
+        .clickable-log { cursor: pointer; transition: transform 0.2s; border-radius: 8px; margin-bottom: 5px; }
+        .clickable-log:hover { background: rgba(59, 130, 246, 0.1) !important; transform: translateX(5px); }
+    </style>
+    <script src="js/api.js"></script>
+    <script>
+        if (!requireAuth()) { /* redirected */ }
+
+        async function loadProfile(silent = false) {
+            try {
+                const data = await api.get('/auth/me');
+                const u = data.user;
+                
+                document.getElementById('display-name').textContent = u.full_name;
+                document.getElementById('display-username').textContent = `@${u.username}`;
+                
+                // Stats
+                const profileData = await api.getUserProfile(u.id);
+                const p = profileData.profile;
+                document.getElementById('display-email').textContent = p.email;
+                
+                // Only update form fields if NOT currently editing (to avoid overwriting user input during polling)
+                const isEditing = !document.getElementById('pf-full-name').disabled;
+                if (!isEditing) {
+                    document.getElementById('pf-full-name').value = u.full_name;
+                    document.getElementById('pf-username').value = u.username;
+                    document.getElementById('pf-email').value = u.email;
+                    document.getElementById('pf-phone').value = u.phone_number || '';
+                }
+
+                document.getElementById('count-followers').textContent = p.follower_count;
+                document.getElementById('count-following').textContent = p.following_count;
+                
+                const isParticipant = u.role === 'PARTICIPANT';
+                const isInst = u.role === 'INSTITUTE';
+                document.querySelectorAll('.role-participant-only').forEach(el => {
+                    el.style.display = isParticipant ? 'block' : 'none';
+                });
+                
+                if (isParticipant) {
+                    document.getElementById('stat-xp').textContent = `✨ ${p.xp}`;
+                    document.getElementById('stat-trophies').textContent = `🏆 ${p.trophies}`;
+                }
+                
+                // Adjust grid if Institute (show only 2 stats)
+                document.getElementById('stats-grid').style.gridTemplateColumns = isParticipant ? '1fr 1fr' : '1fr 1fr';
+
+                // History Title
+                const historyTitle = document.getElementById('history-title');
+                if (u.role === 'INSTITUTE') {
+                    historyTitle.textContent = '🏛️ Created Events';
+                } else if (u.role === 'ADMIN') {
+                    historyTitle.textContent = '🔐 Platform Activity Logs';
+                } else {
+                    historyTitle.textContent = '📜 Competition History';
+                }
+
+                const historyContainer = document.getElementById('history-list');
+                const history = p.competition_history || [];
+                if (history.length === 0) {
+                    let msg = "No data available";
+                    let icon = '🚀';
+                    if (u.role === 'INSTITUTE') {
+                        msg = 'Still not created any events';
+                        icon = '📅';
+                    } else if (u.role === 'ADMIN') {
+                        msg = 'No activity logs recorded yet';
+                        icon = '🔍';
+                    } else {
+                        msg = "Don't wait! Start participating and gain experience! 🚀✨";
+                    }
+                    historyContainer.innerHTML = `<div class="text-center py-4"><div style="font-size:3rem; margin-bottom:1rem;">${icon}</div><div class="opacity-70">${msg}</div></div>`;
+                } else {
+                    historyContainer.innerHTML = history.map(h => `
+                        <div class="notif-item">
+                            <div class="notif-title" style="color:var(--text-primary); font-weight:600;">
+                                ${isInst ? '🗓️' : (u.role === 'ADMIN' ? '🛡️' : (h.prize ? '🏆' : '🎪'))} ${h.event_title}
+                            </div>
+                            <div class="notif-msg" style="margin: 0.25rem 0;">
+                                ${h.institute_description ? `<div style="font-size:0.8rem; opacity:0.7; margin-bottom: 5px;">${h.institute_description}</div>` : ''}
+                                ${isParticipant ? `
+                                    <span class="badge badge-approved">✨ +${h.rewards.xp} XP</span>
+                                    <span class="badge badge-approved" style="background:var(--accent-amber)">🏆 +${h.rewards.trophies || 0} Trophy</span>
+                                ` : (u.role === 'ADMIN' ? `
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span class="badge badge-pending">🛡️ Decision by ${h.admin_name}</span>
+                                        <button class="btn btn-sm btn-secondary" onclick="viewTargetDetails('${h.target_type}', ${h.target_id})">🔍 View Target Details</button>
+                                    </div>
+                                ` : '')}
+                            </div>
+                            <div class="notif-time">${formatDate(h.event_date)}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error('Profile load error:', err);
+                if (!silent) showToast('Failed to load profile', 'error');
+            }
+        }
+
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('save-btn');
+            const originalText = btn.textContent;
+            
+            const fullName = document.getElementById('pf-full-name').value.trim();
+            const username = document.getElementById('pf-username').value.trim();
+            const phone = document.getElementById('pf-phone').value.trim();
+
+            if (phone.length !== 10 || !/^\d+$/.test(phone)) {
+                showToast('Please enter a valid 10-digit phone number', 'error');
+                return;
+            }
+
+            try {
+                btn.textContent = 'Saving...';
+                btn.disabled = true;
+                
+                const res = await api.patch('/auth/update', {
+                    full_name: fullName,
+                    username: username,
+                    phone_number: phone
+                });
+                
+                showToast('Profile updated successfully!', 'success');
+                loadProfile();
+                toggleEditMode(false);
+                // Update local storage user data
+                const currentUser = api.getUser();
+                currentUser.full_name = fullName;
+                currentUser.username = username;
+                currentUser.phone_number = phone;
+                api.setAuth(api.getToken(), currentUser);
+                buildNav();
+                
+            } catch (err) {
+                showToast(err.message || 'Update failed', 'error');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        async function showList(type) {
+            const user = api.getUser();
+            const modal = document.getElementById('list-modal');
+            const title = document.getElementById('modal-title');
+            const list = document.getElementById('modal-list');
+            
+            title.textContent = type === 'followers' ? 'Followers' : 'Following';
+            list.innerHTML = '<div class="text-center py-2"><div class="spinner"></div></div>';
+            modal.classList.remove('hidden');
+            
+            // Start polling for this specific list
+            startListPolling(type);
+        }
+
+        let listPollInterval = null;
+        async function startListPolling(type) {
+            if (listPollInterval) clearInterval(listPollInterval);
+            
+            const fetchAndRender = async () => {
+                const user = api.getUser();
+                const list = document.getElementById('modal-list');
+                try {
+                    const data = await api.get(`/social/${type}/${user.id}`);
+                    const items = data[type] || [];
+                    
+                    if (items.length === 0) {
+                        const emptyMsg = type === 'followers' 
+                            ? `<div class="text-center py-4">
+                                <img src="file:///C:/Users/ADMIN/.gemini/antigravity/brain/0b3fe94d-2cbb-4529-a2c2-198927b5fd8f/no_followers_illustration_1775339888787.png" style="width:150px; margin-bottom:1rem; opacity:0.9;">
+                                <div style="font-weight:600;">No followers yet</div>
+                                <div class="opacity-70">Start connecting with friends! 🤝✨</div>
+                               </div>`
+                            : `<div class="text-center py-4">
+                                <div style="font-size:3rem; margin-bottom:1rem;">🤝</div>
+                                <div style="font-weight:600;">You are not following anyone</div>
+                                <div class="opacity-70">Start connecting with friends! 🤝✨</div>
+                               </div>`;
+                        list.innerHTML = emptyMsg;
+                    } else {
+                        list.innerHTML = items.map(u => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <div>
+                                    <div style="font-weight: 600;">👤 ${u.full_name}</div>
+                                    <div class="opacity-70" style="font-size: 0.85rem;">@${u.username} ${u.role === 'INSTITUTE' ? '🏛️' : ''}</div>
+                                </div>
+                                <a href="index.html?search=${u.username}" class="btn btn-secondary btn-sm">View Profile 🔍</a>
+                            </div>
+                        `).join('');
+                    }
+                } catch (err) {
+                    console.error('List refresh failed', err);
+                }
+            };
+
+            await fetchAndRender();
+            listPollInterval = setInterval(fetchAndRender, 5000);
+        }
+
+        // Edit Mode Toggle
+        let editMode = false;
+        const editToggleBtn = document.getElementById('edit-toggle-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const inputs = ['pf-full-name', 'pf-username', 'pf-phone'];
+
+        function toggleEditMode(force) {
+            editMode = (force !== undefined) ? force : !editMode;
+            editToggleBtn.textContent = editMode ? '❌ Cancel' : '✏️ Edit Profile';
+            editToggleBtn.className = `btn btn-${editMode ? 'danger' : 'secondary'} btn-sm mt-2`;
+            saveBtn.classList.toggle('hidden', !editMode);
+            
+            inputs.forEach(id => {
+                document.getElementById(id).disabled = !editMode;
+            });
+        }
+
+        editToggleBtn.addEventListener('click', () => toggleEditMode());
+
+        function closeModal() {
+            document.getElementById('list-modal').classList.add('hidden');
+            if (listPollInterval) {
+                clearInterval(listPollInterval);
+                listPollInterval = null;
+            }
+            // Refresh counts on close just in case
+            loadProfile(true);
+        }
+
+        async function viewTargetDetails(type, id) {
+            try {
+                let data;
+                if (type === 'INSTITUTE') {
+                    const res = await api.get(`/institutes/${id}`);
+                    data = res.institute;
+                    showDetails('institute', id, data);
+                } else {
+                    const res = await api.get(`/events/${id}`);
+                    data = res.event;
+                    showDetails('event', id, data);
+                }
+            } catch (err) {
+                showToast('Target entity might have been deleted or not found.', 'error');
+            }
+        }
+
+        // Details Modal Logic
+        function showDetails(type, id, data) {
+            const modal = document.getElementById('details-modal');
+            const title = document.getElementById('details-title');
+            const body = document.getElementById('details-body');
+            const val = (v) => (v === null || v === undefined || v === "" || v === "null") ? '-' : v;
+
+            if (type === 'institute') {
+                title.innerHTML = `🏛️ Institute: ${val(data.name)}`;
+                body.innerHTML = `
+                    <div class="details-grid">
+                        <div class="details-label">ID</div><div class="details-value">#${val(data.id)}</div>
+                        <div class="details-label">Name</div><div class="details-value">${val(data.name)}</div>
+                        <div class="details-label">Email</div><div class="details-value">${val(data.email)}</div>
+                        <div class="details-label">Status</div><div class="details-value">${statusBadge(data.approval_status)}</div>
+                        <div class="details-label">Applied</div><div class="details-value">${formatDate(data.created_at)}</div>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <div class="details-label" style="margin-bottom: 0.5rem;">Full Details / About</div>
+                        <div class="card" style="padding: 1.5rem; background: var(--bg-glass); white-space: pre-wrap;">
+                            ${val(data.details)}
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'event') {
+                title.innerHTML = `📅 Event: ${val(data.title)}`;
+                body.innerHTML = `
+                    ${data.image_url ? `<img src="${data.image_url}" style="width: 100%; border-radius: var(--radius-md); max-height: 300px; object-fit: contain; background: #000; border: 1px solid var(--border-glass); margin-bottom: 1.5rem;">` : ''}
+                    <div class="details-grid">
+                        <div class="details-label">ID</div><div class="details-value">#${val(data.id)}</div>
+                        <div class="details-label">Title</div><div class="details-value"><strong>${val(data.title)}</strong></div>
+                        <div class="details-label">Institute</div><div class="details-value">${val(data.institute_name)}</div>
+                        <div class="details-label">Start Date</div><div class="details-value">${formatDate(data.date)}</div>
+                        <div class="details-label">End Date</div><div class="details-value">${formatDate(data.end_date)}</div>
+                        <div class="details-label">Location</div><div class="details-value">${val(data.location)}</div>
+                        <div class="details-label">Extra Locs.</div><div class="details-value">${val(data.extra_locations)}</div>
+                        <div class="details-label">Rounds</div><div class="details-value">${val(data.num_rounds)}</div>
+                        <div class="details-label">Capacity</div><div class="details-value">${val(data.capacity)} slots</div>
+                        <div class="details-label">Status</div><div class="details-value">${statusBadge(data.approval_status)}</div>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <div class="details-label" style="margin-bottom: 0.5rem;">Event Description</div>
+                        <div class="card" style="padding: 1.5rem; background: var(--bg-glass); font-size: 0.95rem; white-space: pre-wrap;">
+                            ${val(data.description)}
+                        </div>
+                    </div>
+                `;
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('details-modal').classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProfile();
+            // Polling for real-time sync (5 seconds) - silent in background
+            setInterval(() => loadProfile(true), 5000);
+        });
+    </script>
+</body>
+</html>

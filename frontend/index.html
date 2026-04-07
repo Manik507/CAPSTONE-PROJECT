@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EventHub – Discover and join amazing events and competitions. Earn XP, trophies, and climb the leaderboard.">
+    <title>EventHub – Event &amp; Competition Platform</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="navbar-brand">
+                <span class="logo-icon">🎯</span> EventHub
+            </a>
+            <div class="navbar-links" id="main-nav"></div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <h1>Discover &amp; Compete at <span class="gradient-text">Amazing Events</span></h1>
+        <p>Join competitions, earn XP &amp; trophies, and climb the global leaderboard. Your journey starts here.</p>
+        <div class="btn-group" style="justify-content: center;">
+            <a href="register.html" class="btn btn-primary btn-lg">🚀 Get Started</a>
+            <a href="leaderboard.html" class="btn btn-secondary btn-lg">🏆 Leaderboard</a>
+        </div>
+        <div class="hero-stats" id="hero-stats">
+            <div class="hero-stat"><div class="stat-number" id="stat-events">-</div><div class="stat-label">Events</div></div>
+            <div class="hero-stat"><div class="stat-number" id="stat-participants">-</div><div class="stat-label">Participants</div></div>
+            <div class="hero-stat"><div class="stat-number" id="stat-institutes">-</div><div class="stat-label">Institutes</div></div>
+        </div>
+    </section>
+
+    <!-- Events Grid -->
+    <div class="container">
+        <div class="page-header">
+            <h1>Upcoming Events</h1>
+            <p>Browse approved events and register to participate</p>
+        </div>
+
+        <div id="events-loading" class="text-center"><div class="spinner"></div></div>
+        <div id="upcoming-grid" class="cards-grid"></div>
+        <div id="events-empty" class="empty-state hidden">
+            <div class="empty-icon">📅</div>
+            <h3>No Active Events</h3>
+            <p>Check back soon for exciting upcoming events!</p>
+        </div>
+
+        <hr class="section-divider mt-5 mb-5 opacity-20">
+
+        <div class="page-header">
+            <h1>Previous Events</h1>
+            <p>Archive of completed competitions and workshops</p>
+        </div>
+        <div id="past-grid" class="cards-grid"></div>
+        <div id="past-empty" class="empty-state hidden">
+            <div class="empty-icon">🏛️</div>
+            <h3>No Past Events Recorded</h3>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        let searchTimeout;
+        const searchDropdown = document.createElement('div');
+        searchDropdown.className = 'search-dropdown hidden';
+        
+        async function handleSearch(e) {
+            const query = e.target.value.trim();
+            if (query.length < 2) {
+                searchDropdown.classList.add('hidden');
+                return;
+            }
+
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const data = await api.searchUsers(query);
+                    const users = data.users || [];
+                    
+                    if (users.length === 0) {
+                        searchDropdown.innerHTML = '<div class="search-item">No results found</div>';
+                    } else {
+                        searchDropdown.innerHTML = users.map(u => `
+                            <div class="search-item" onclick="viewProfile(${u.id})">
+                                <div class="search-item-info">
+                                    <div class="search-item-name">${u.full_name}</div>
+                                    <div class="search-item-handle">@${u.username} ${u.role === 'INSTITUTE' ? '🏛️' : ''}</div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                    searchDropdown.classList.remove('hidden');
+                } catch (err) {
+                    console.error(err);
+                }
+            }, 300);
+        }
+
+        async function toggleFollow(userId, currentlyFollowing) {
+            try {
+                if (currentlyFollowing) {
+                    await api.unfollowUser(userId);
+                    showToast('Unfollowed successfully');
+                } else {
+                    await api.followUser(userId);
+                    showToast('Followed successfully! 🎉');
+                }
+                viewProfile(userId);
+            } catch (err) {
+                showToast(err.message || 'Action failed', 'error');
+            }
+        }
+
+        async function viewProfile(userId) {
+            try {
+                searchDropdown.classList.add('hidden');
+                const data = await api.getUserProfile(userId);
+                const p = data.profile;
+                const me = api.getUser();
+                
+                document.getElementById('prof-name').textContent = p.full_name;
+                document.getElementById('prof-handle').textContent = `@${p.username}`;
+                
+                // Privacy/Contact logic
+                const emailEl = document.getElementById('prof-email');
+                const phoneEl = document.getElementById('prof-phone');
+                emailEl.textContent = p.email || 'N/A';
+                phoneEl.textContent = p.phone || 'N/A';
+                
+                // Colorize Private/N/A
+                emailEl.style.color = (p.email === 'Private' || !p.email) ? 'var(--accent-red)' : 'var(--accent-blue)';
+                phoneEl.style.color = (p.phone === 'Private' || !p.phone) ? 'var(--accent-red)' : 'var(--accent-blue)';
+
+                document.getElementById('prof-role').textContent = p.role;
+                document.getElementById('prof-role').className = `badge ${p.role === 'INSTITUTE' ? 'badge-approved' : 'badge-pending'}`;
+                
+                const isInst = p.role === 'INSTITUTE';
+                const isAdmin = p.role === 'ADMIN';
+                const xpCard = document.getElementById('prof-xp').closest('.stat-card');
+                const trophyCard = document.getElementById('prof-trophies').closest('.stat-card');
+                const historyWrapper = document.getElementById('prof-history').parentNode;
+                
+                if (isInst || isAdmin) {
+                    xpCard.style.display = 'none';
+                    trophyCard.style.display = 'none';
+                    if (isAdmin) historyWrapper.style.display = 'none';
+                    else historyWrapper.style.display = 'block';
+                } else {
+                    xpCard.style.display = 'block';
+                    trophyCard.style.display = 'block';
+                    historyWrapper.style.display = 'block';
+                    document.getElementById('prof-xp').textContent = `✨ ${p.xp || 0}`;
+                    document.getElementById('prof-trophies').textContent = `🏆 ${p.trophies || 0}`;
+                }
+
+                document.getElementById('prof-followers').textContent = p.follower_count || 0;
+                document.getElementById('prof-following').textContent = p.following_count || 0;
+                
+                // Mutual Connections
+                const mutualContainer = document.getElementById('prof-mutual-container');
+                const mutualList = document.getElementById('prof-mutual-list');
+                const mutuals = p.mutual_connections || [];
+                
+                if (mutuals.length > 0 && userId !== me?.id) {
+                    mutualContainer.classList.remove('hidden');
+                    mutualList.innerHTML = mutuals.map(m => `<span>${m.full_name}</span>`).join(', ');
+                } else {
+                    mutualContainer.classList.add('hidden');
+                }
+
+                const historyTitle = document.querySelector('#profile-modal #history-title-label');
+                if (historyTitle) historyTitle.textContent = isInst ? '🏛️ Created Events:' : '📜 Competition History:';
+
+                // Competition History (only if not admin)
+                const historyContainer = document.getElementById('prof-history');
+                const history = p.competition_history || [];
+                if (!isAdmin) {
+                    if (history.length === 0) {
+                        historyContainer.innerHTML = `<div class="opacity-50 text-center py-2">${isInst ? 'Still not created any events' : 'No competition history'}</div>`;
+                    } else {
+                        historyContainer.innerHTML = history.map(h => `
+                            <div class="history-item" style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <div style="font-weight:600;">${isInst ? '🗓️' : (h.prize ? '🏆' : '🎪')} ${h.event_title}</div>
+                                <div style="font-size:0.75rem; opacity:0.7;">${formatDate(h.event_date)}</div>
+                            </div>
+                        `).join('');
+                    }
+                }
+                
+                const followBtn = document.getElementById('prof-follow-btn');
+                if (me && me.id !== p.id) {
+                    followBtn.classList.remove('hidden');
+                    followBtn.textContent = p.is_following ? 'Unfollow' : 'Follow';
+                    followBtn.className = `btn ${p.is_following ? 'btn-secondary' : 'btn-primary'} w-full`;
+                    followBtn.onclick = () => toggleFollow(p.id, p.is_following);
+                } else {
+                    followBtn.classList.add('hidden');
+                }
+                
+                document.getElementById('profile-modal').classList.remove('hidden');
+            } catch (err) {
+                showToast('Could not load profile', 'error');
+            }
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profile-modal').classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = api.getUser();
+            
+            // Add Search Bar if logged in
+            if (user) {
+                const nav = document.getElementById('main-nav');
+                const searchContainer = document.createElement('div');
+                searchContainer.className = 'nav-search-container';
+                searchContainer.innerHTML = `<input type="text" placeholder="🔍 Search users & institutes..." class="nav-search-input" oninput="handleSearch(event)">`;
+                searchContainer.appendChild(searchDropdown);
+                nav.parentNode.insertBefore(searchContainer, nav);
+            }
+
+            // Handle auto-search from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchQuery = urlParams.get('search');
+            if (searchQuery && user) {
+                try {
+                    const data = await api.searchUsers(searchQuery);
+                    if (data.users && data.users.length > 0) {
+                        viewProfile(data.users[0].id);
+                    }
+                } catch (e) {}
+            }
+
+            // Load hero stats
+            try {
+                const stats = await api.get('/leaderboard/stats');
+                document.getElementById('stat-events').textContent = stats.approved_events ?? '-';
+                document.getElementById('stat-participants').textContent = stats.total_participants ?? '-';
+                document.getElementById('stat-institutes').textContent = stats.approved_institutes ?? '-';
+            } catch (err) {}
+
+            // Load events list
+            try {
+                const data = await api.get('/events');
+                const allEvents = data.events || [];
+                document.getElementById('events-loading').classList.add('hidden');
+
+                const now = new Date();
+                const upcoming = allEvents.filter(e => !e.end_date || new Date(e.end_date) > now);
+                const past = allEvents.filter(e => e.end_date && new Date(e.end_date) <= now);
+
+                if (upcoming.length === 0) {
+                    document.getElementById('events-empty').classList.remove('hidden');
+                }
+                if (past.length === 0) {
+                    document.getElementById('past-empty').classList.remove('hidden');
+                }
+
+                const renderGrid = (list, gridId) => {
+                    const grid = document.getElementById(gridId);
+                    list.forEach(e => {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        card.innerHTML = `
+                            <div class="card-image">
+                                ${e.image_url ? `<img src="${e.image_url}" alt="${e.title}">` : '<div class="placeholder-icon">🎪</div>'}
+                            </div>
+                            <div class="card-body">
+                                <h3>${e.title}</h3>
+                                <p>${e.description || 'No description available.'}</p>
+                                <div class="card-meta">
+                                    <span>📅 ${formatDate(e.date)}</span>
+                                    <span>📍 ${e.location}</span>
+                                    <span>👥 ${e.registered_count}/${e.capacity}</span>
+                                </div>
+                                <div class="card-meta"><span>🏛️ ${e.institute_name}</span></div>
+                            </div>
+                            <div class="card-footer">
+                                ${statusBadge(e.approval_status)}
+                                <a href="event.html?id=${e.id}" class="btn btn-primary btn-sm">View Details →</a>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                };
+
+                renderGrid(upcoming, 'upcoming-grid');
+                renderGrid(past, 'past-grid');
+
+            } catch (err) {
+                document.getElementById('events-loading').classList.add('hidden');
+                document.getElementById('events-empty').classList.remove('hidden');
+            }
+        });
+    </script>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>User Profile</h2>
+                <button class="close-btn" onclick="closeProfileModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <div style="font-size: 4rem;">👤</div>
+                    <h3 id="prof-name" class="mb-0">Full Name</h3>
+                    <p id="prof-handle" class="opacity-70 mb-2">@username</p>
+                    <div id="prof-contact" class="mb-2" style="font-size: 0.85rem; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; display: inline-block; min-width: 200px; text-align: left;">
+                        <div style="margin-bottom:4px;">📧 <strong>Email:</strong> <span id="prof-email"></span></div>
+                        <div>📞 <strong>Phone:</strong> <span id="prof-phone"></span></div>
+                    </div>
+                    <div id="prof-role" class="badge badge-pending mb-3">ROLE</div>
+                </div>
+                
+                <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;">
+                    <div class="stat-card" style="padding: 10px; text-align: center;">
+                        <div class="stat-value" id="prof-xp" style="font-size: 1.2rem;">✨ 0</div>
+                        <div class="stat-label">XP</div>
+                    </div>
+                    <div class="stat-card" style="padding: 10px; text-align: center;">
+                        <div class="stat-value" id="prof-trophies" style="font-size: 1.2rem;">🏆 0</div>
+                        <div class="stat-label">Trophies</div>
+                    </div>
+                </div>
+
+                <div class="mb-2" style="display: flex; justify-content: space-around; font-size: 0.9rem; text-align: center;">
+                    <div><strong id="prof-followers">0</strong><br><span class="opacity-70">Followers</span></div>
+                    <div><strong id="prof-following">0</strong><br><span class="opacity-70">Following</span></div>
+                </div>
+
+                <div id="prof-mutual-container" class="mb-2 hidden" style="font-size: 0.85rem; background: var(--bg-glass); padding: 10px; border-radius: 8px;">
+                    <strong>🤝 Mutual Connections:</strong>
+                    <div id="prof-mutual-list" class="opacity-80"></div>
+                </div>
+
+                <div class="mb-3">
+                    <strong id="history-title-label">📜 Competition History:</strong>
+                    <div id="prof-history" style="max-height: 180px; overflow-y: auto; font-size: 0.85rem; margin-top: 5px;"></div>
+                </div>
+
+                <button id="prof-follow-btn" class="btn btn-primary w-full hidden">Follow</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login – EventHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+            <div class="navbar-links" id="main-nav"></div>
+        </div>
+    </nav>
+
+    <div class="form-container" style="margin-top: 4rem;">
+        <div class="form-card">
+            <h2>Participant Login</h2>
+            <p class="subtitle">Login to your EventHub Participant account</p>
+
+            <div id="login-alert"></div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-full btn-lg" id="login-btn">🔒 Login</button>
+            </form>
+
+            <div class="form-footer mt-2">
+                Don't have an account? <a href="register.html">Register now</a><br><br>
+                Are you an Institute? <a href="institute-login.html">Institute Portal</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true;
+            btn.textContent = 'Logging in…';
+
+            try {
+                const data = await api.post('/auth/login', {
+                    email: document.getElementById('email').value.trim(),
+                    password: document.getElementById('password').value,
+                    portal: 'PARTICIPANT'
+                });
+
+                const role = data.user.role;
+                if (role === 'INSTITUTE') {
+                    throw new Error("Invalid login for Participant Portal");
+                }
+
+                api.setAuth(data.access_token, data.user);
+                showToast('Login successful!', 'success');
+
+                setTimeout(() => {
+                    if (role === 'ADMIN') window.location.href = 'admin-dashboard.html';
+                    else window.location.href = 'dashboard.html';
+                }, 500);
+
+            } catch (err) {
+                document.getElementById('login-alert').innerHTML =
+                    `<div class="alert alert-error">❌ ${err.message || 'Login failed'}</div>`;
+                btn.disabled = false;
+                btn.textContent = '🔒 Login';
+            }
+        });
+    </script>
+</body>
+</html>

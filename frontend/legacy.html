@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Legacy – EventHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-glass);
+            left: 50%;
+            margin-left: -1px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 3rem;
+            width: 50%;
+            padding: 0 2rem;
+        }
+
+        .timeline-item:nth-child(odd) {
+            left: 0;
+            text-align: right;
+        }
+
+        .timeline-item:nth-child(even) {
+            left: 50%;
+            text-align: left;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            top: 10px;
+            z-index: 10;
+            box-shadow: 0 0 10px var(--accent-blue);
+        }
+
+        .timeline-item:nth-child(odd) .timeline-dot {
+            right: -8px;
+        }
+
+        .timeline-item:nth-child(even) .timeline-dot {
+            left: -8px;
+        }
+
+        .legacy-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .legacy-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-blue);
+        }
+
+        .legacy-prize {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--accent-amber);
+            border-radius: var(--radius-md);
+            padding: 10px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .legacy-rewards {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .xp-text {
+            color: var(--accent-green);
+        }
+
+        .trop-text {
+            color: var(--accent-amber);
+        }
+
+        @media (max-width: 768px) {
+            .timeline::before {
+                left: 30px;
+            }
+
+            .timeline-item {
+                width: 100% !important;
+                left: 0 !important;
+                padding-left: 60px !important;
+                text-align: left !important;
+            }
+
+            .timeline-item:nth-child(odd) .timeline-dot,
+            .timeline-item:nth-child(even) .timeline-dot {
+                left: 22px !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="dashboard.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub Legacy</a>
+            <div class="navbar-links">
+                <a href="dashboard.html">Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header text-center">
+            <h1>📜 My Career Legacy</h1>
+            <p>Your journey through competitions, prizes, and achievements</p>
+        </div>
+
+        <!-- Career Stats -->
+        <div class="dashboard-grid mb-4" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-value" id="stats-xp">0</div>
+                <div class="stat-label">Lifetime XP</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-value" id="stats-trophies">0</div>
+                <div class="stat-label">Total Trophies</div>
+            </div>
+        </div>
+
+        <div id="legacy-loading" class="text-center">
+            <div class="spinner"></div>
+        </div>
+        <div id="legacy-timeline" class="timeline hidden"></div>
+        <div id="legacy-empty" class="empty-state hidden">
+            <div class="empty-icon">🎒</div>
+            <h3>Your Bag is Empty</h3>
+            <p>Start participating in events to build your legacy!</p>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        if (!requireAuth(['PARTICIPANT'])) { }
+
+        async function loadLegacy() {
+            try {
+                const data = await api.getFullLegacy();
+                const history = data.history || [];
+                const stats = data.stats || {};
+
+                document.getElementById('stats-xp').textContent = stats.xp;
+                document.getElementById('stats-trophies').textContent = stats.trophies;
+
+                document.getElementById('legacy-loading').classList.add('hidden');
+                const container = document.getElementById('legacy-timeline');
+
+                if (history.length === 0) {
+                    const isInst = api.getUser().role === 'INSTITUTE';
+                    const isVol = api.getUser().role === 'VOLUNTEER';
+                    
+                    const emptyHeader = document.querySelector('#legacy-empty h3');
+                    const emptyText = document.querySelector('#legacy-empty p');
+                    
+                    if (isInst || isVol) {
+                        emptyHeader.textContent = 'Still not created any events';
+                        emptyText.textContent = isInst ? 'Go to your dashboard to create an event!' : 'You have not been assigned to any events yet.';
+                    }
+                    
+                    document.getElementById('legacy-empty').classList.remove('hidden');
+                    return;
+                }
+
+                container.classList.remove('hidden');
+                container.innerHTML = history.map(item => `
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="legacy-card">
+                            <span class="opacity-50" style="font-size:0.85rem;">${formatDate(item.event_date)}</span>
+                            <h3 class="mb-1">${item.event_title}</h3>
+                            
+                            ${item.prize ? `
+                                <div class="legacy-prize">
+                                    <div style="font-size:1.5rem; margin-bottom:5px;">${item.prize.rank === 1 ? '🥇' : item.prize.rank === 2 ? '🥈' : '🥉'}</div>
+                                    <strong style="color:var(--accent-amber);">${item.prize.prize_name}</strong>
+                                    <p style="font-size:0.8rem; margin-top:3px; opacity:0.8;">${item.prize.prize_description || ''}</p>
+                                </div>
+                            ` : '<p class="opacity-50" style="font-size:0.9rem;">Participated</p>'}
+
+                            <div class="legacy-rewards">
+                                ${item.total_xp_earned > 0 ? `<span class="xp-text">+${item.total_xp_earned} XP</span>` : ''}
+                                ${item.total_trophies_earned > 0 ? `<span class="trop-text">+${item.total_trophies_earned} Trophy</span>` : ''}
+                                <span class="badge ${item.payment_status === 'PAID' ? 'badge-success' : 'badge-pending'}">${item.payment_status}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                showToast('Error loading legacy', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadLegacy);
+    </script>
+</body>
+
+</html>

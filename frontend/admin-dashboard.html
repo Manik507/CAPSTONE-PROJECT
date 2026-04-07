@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard – EventHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+            padding: 2rem;
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: var(--shadow-lg);
+            animation: modalSlide 0.3s ease-out;
+        }
+        @keyframes modalSlide {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .btn-close {
+            background: none; border: none;
+            color: var(--text-muted); font-size: 2rem;
+            cursor: pointer; transition: var(--transition);
+            line-height: 1;
+        }
+        .btn-close:hover { color: var(--accent-red); }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .details-label { color: var(--text-muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+        .details-value { color: var(--text-primary); font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+            <div class="navbar-links" id="main-nav"></div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>⚙️ Admin Dashboard</h1>
+            <p>Manage the entire EventHub platform</p>
+        </div>
+
+        <!-- Platform Stats -->
+        <div class="dashboard-grid" id="admin-stats">
+            <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" id="s-users">0</div><div class="stat-label">Total Users</div></div>
+            <div class="stat-card"><div class="stat-icon">🏛️</div><div class="stat-value" id="s-institutes">0</div><div class="stat-label">Institutes</div></div>
+            <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-value" id="s-events">0</div><div class="stat-label">Events</div></div>
+            <div class="stat-card"><div class="stat-icon">🎮</div><div class="stat-value" id="s-participants">0</div><div class="stat-label">Participants</div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="inst-tab">🏛️ Pending Institutes</button>
+            <button class="tab-btn" data-tab="evt-tab">📅 Pending Events</button>
+            <button class="tab-btn" data-tab="all-inst-tab">📋 All Institutes</button>
+            <button class="tab-btn" data-tab="all-evt-tab">📋 All Events</button>
+            <button class="tab-btn" data-tab="all-part-tab">👥 All Participants</button>
+            <button class="tab-btn" data-tab="create-admin-tab">🆕 Create Admin</button>
+        </div>
+
+        <!-- Pending Institutes -->
+        <div class="tab-content active" id="inst-tab">
+            <div id="inst-loading" class="text-center"><div class="spinner"></div></div>
+            <div id="inst-list"></div>
+            <div id="inst-empty" class="empty-state hidden">
+                <div class="empty-icon">✅</div>
+                <h3>No Pending Institutes</h3>
+                <p>All caught up!</p>
+            </div>
+        </div>
+
+        <!-- Pending Events -->
+        <div class="tab-content" id="evt-tab">
+            <div id="evt-loading" class="text-center"><div class="spinner"></div></div>
+            <div id="evt-list"></div>
+            <div id="evt-empty" class="empty-state hidden">
+                <div class="empty-icon">✅</div>
+                <h3>No Pending Events</h3>
+                <p>All caught up!</p>
+            </div>
+        </div>
+
+        <!-- All Institutes -->
+        <div class="tab-content" id="all-inst-tab">
+            <div id="all-inst-loading" class="text-center"><div class="spinner"></div></div>
+            <div id="all-inst-list"></div>
+        </div>
+
+        <!-- All Events -->
+        <div class="tab-content" id="all-evt-tab">
+            <div id="all-evt-loading" class="text-center"><div class="spinner"></div></div>
+            <div id="all-evt-list"></div>
+        </div>
+
+        <!-- All Participants -->
+        <div class="tab-content" id="all-part-tab">
+            <div id="all-part-loading" class="text-center"><div class="spinner"></div></div>
+            <div id="all-part-list"></div>
+        </div>
+
+        <!-- Create Admin -->
+        <div class="tab-content" id="create-admin-tab">
+            <div class="card" style="max-width: 500px; margin: 0 auto; margin-top: 2rem;">
+                <h2>Create New Admin</h2>
+                <form id="create-admin-form">
+                    <div class="form-group">
+                        <label for="admin-name">Full Name</label>
+                        <input type="text" id="admin-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-email">Email Address</label>
+                        <input type="email" id="admin-email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-password">Password</label>
+                        <input type="password" id="admin-password" class="form-control" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Create Admin</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="details-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="section-panel-header">
+                <h2 id="details-title">Details</h2>
+                <button class="btn-close" onclick="closeDetailsModal()">&times;</button>
+            </div>
+            <div class="section-panel-body" id="details-body">
+                <!-- Dynamic content -->
+            </div>
+
+            <!-- Decision Section (Reason) -->
+            <div id="decision-section" class="hidden" style="padding: 0 1.5rem 1.5rem 1.5rem; border-top: 1px solid var(--border-glass); background: rgba(59, 130, 246, 0.03);">
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label for="decision-reason" style="font-weight: 700; color: var(--accent-blue);">🛡️ Reason for Decision (Required)</label>
+                    <textarea id="decision-reason" class="card" style="width: 100%; min-height: 80px; padding: 10px; margin-top: 5px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass);" placeholder="Provide a brief explanation for this approval or rejection..."></textarea>
+                </div>
+                <div id="decision-actions" class="btn-group" style="justify-content: flex-end; margin-top: 1rem;">
+                    <button class="btn btn-success" id="btn-approve-modal">✅ Approve</button>
+                    <button class="btn btn-danger" id="btn-reject-modal">❌ Reject</button>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="padding: 1rem 1.5rem; text-align: right; border-top: 1px solid var(--border-glass);">
+                <button class="btn btn-secondary" onclick="closeDetailsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        if (!requireAuth(['ADMIN'])) { /* redirected */ }
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        async function approveInstitute(id, action, reason = "") {
+            try {
+                await api.post(`/admin/institutes/approve/${id}`, { action, reason });
+                showToast(`Institute ${action.toLowerCase()}!`, 'success');
+                closeDetailsModal();
+                loadPendingInstitutes();
+                loadAllInstitutes();
+                loadStats();
+            } catch (err) {
+                showToast(err.message || 'Failed', 'error');
+            }
+        }
+
+        async function approveEvent(id, action, reason = "") {
+            try {
+                await api.post(`/admin/events/approve/${id}`, { action, reason });
+                showToast(`Event ${action.toLowerCase()}!`, 'success');
+                closeDetailsModal();
+                loadPendingEvents();
+                loadStats();
+            } catch (err) {
+                showToast(err.message || 'Failed', 'error');
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const data = await api.get('/admin/stats');
+                document.getElementById('s-users').textContent = data.total_users;
+                document.getElementById('s-institutes').textContent = data.total_institutes;
+                document.getElementById('s-events').textContent = data.total_events;
+                document.getElementById('s-participants').textContent = data.total_participants;
+            } catch (err) {}
+        }
+
+        async function loadPendingInstitutes() {
+            try {
+                const data = await api.get('/admin/institutes/pending');
+                const items = data.institutes || [];
+                document.getElementById('inst-loading').classList.add('hidden');
+
+                if (items.length === 0) {
+                    document.getElementById('inst-empty').classList.remove('hidden');
+                    document.getElementById('inst-list').innerHTML = '';
+                    return;
+                }
+                document.getElementById('inst-empty').classList.add('hidden');
+
+                document.getElementById('inst-list').innerHTML = `<div class="table-container"><table>
+                    <thead><tr><th>Name</th><th>Handle</th><th>Email</th><th>Details</th><th>Applied</th><th>Actions</th></tr></thead>
+                    <tbody>
+                    ${items.map(i => `
+                        <tr>
+                            <td><strong>${i.name}</strong></td>
+                            <td><span class="badge badge-pending">@${i.username || 'N/A'}</span></td>
+                            <td>${i.email}</td>
+                            <td>${(i.details || '-').substring(0, 30)}${i.details && i.details.length > 30 ? '...' : ''}</td>
+                            <td>${formatDate(i.created_at)}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-secondary btn-sm" onclick='showDetails("institute", ${i.id}, ${JSON.stringify(i).replace(/'/g, "&apos;")})'>🔍 Details</button>
+                                    <button class="btn btn-success btn-sm" onclick="approveInstitute(${i.id},'APPROVED')">✅ Approve</button>
+                                    <button class="btn btn-danger btn-sm" onclick="approveInstitute(${i.id},'REJECTED')">❌ Reject</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('')}
+                    </tbody>
+                </table></div>`;
+            } catch (err) {
+                document.getElementById('inst-loading').classList.add('hidden');
+            }
+        }
+
+        async function loadPendingEvents() {
+            try {
+                const data = await api.get('/admin/events/pending');
+                const items = data.events || [];
+                document.getElementById('evt-loading').classList.add('hidden');
+
+                if (items.length === 0) {
+                    document.getElementById('evt-empty').classList.remove('hidden');
+                    document.getElementById('evt-list').innerHTML = '';
+                    return;
+                }
+                document.getElementById('evt-empty').classList.add('hidden');
+
+                document.getElementById('evt-list').innerHTML = `<div class="table-container"><table>
+                    <thead><tr><th>Title</th><th>Institute</th><th>Date</th><th>Location</th><th>Capacity</th><th>Actions</th></tr></thead>
+                    <tbody>
+                    ${items.map(e => `
+                        <tr>
+                            <td><strong>${e.title}</strong></td>
+                            <td>${e.institute_name || '-'}</td>
+                            <td>${formatDate(e.date)}</td>
+                            <td>${e.location}</td>
+                            <td>${e.capacity}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-secondary btn-sm" onclick='showDetails("event", ${e.id}, ${JSON.stringify(e).replace(/'/g, "&apos;")})'>🔍 Details</button>
+                                    <button class="btn btn-success btn-sm" onclick="approveEvent(${e.id},'APPROVED')">✅ Approve</button>
+                                    <button class="btn btn-danger btn-sm" onclick="approveEvent(${e.id},'REJECTED')">❌ Reject</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('')}
+                    </tbody>
+                </table></div>`;
+            } catch (err) {
+                document.getElementById('evt-loading').classList.add('hidden');
+            }
+        }
+
+        async function loadAllInstitutes() {
+            try {
+                const data = await api.get('/admin/institutes/all');
+                const items = data.institutes || [];
+                document.getElementById('all-inst-loading').classList.add('hidden');
+
+                document.getElementById('all-inst-list').innerHTML = `<div class="table-container"><table>
+                    <thead><tr><th>Name</th><th>Handle</th><th>Email</th><th>Status</th><th>Applied</th></tr></thead>
+                    <tbody>
+                    ${items.map(i => `
+                        <tr>
+                            <td><strong>${i.name}</strong></td>
+                            <td><span class="badge badge-pending">@${i.username || 'N/A'}</span></td>
+                            <td>${i.email}</td>
+                            <td>${statusBadge(i.approval_status)}</td>
+                            <td>${formatDate(i.created_at)}</td>
+                            <td><button class="btn btn-secondary btn-sm" onclick='showDetails("institute", ${i.id}, ${JSON.stringify(i).replace(/'/g, "&apos;")})'>🔍 View</button></td>
+                        </tr>
+                    `).join('')}
+                    </tbody>
+                </table></div>`;
+            } catch (err) {
+                document.getElementById('all-inst-loading').classList.add('hidden');
+            }
+        }
+
+        async function loadAllEvents() {
+            try {
+                const data = await api.get('/admin/events/all');
+                const items = data.events || [];
+                document.getElementById('all-evt-loading').classList.add('hidden');
+
+                document.getElementById('all-evt-list').innerHTML = `<div class="table-container"><table>
+                    <thead><tr><th>Title</th><th>Institute</th><th>Date</th><th>Status</th><th>Capacity</th></tr></thead>
+                    <tbody>
+                    ${items.map(e => `
+                        <tr>
+                            <td><strong>${e.title}</strong></td>
+                            <td>${e.institute_name || '-'}</td>
+                            <td>${formatDate(e.date)}</td>
+                            <td>${statusBadge(e.approval_status)}</td>
+                            <td>${e.capacity}</td>
+                            <td><button class="btn btn-secondary btn-sm" onclick='showDetails("event", ${e.id}, ${JSON.stringify(e).replace(/'/g, "&apos;")})'>🔍 View</button></td>
+                        </tr>
+                    `).join('')}
+                    </tbody>
+                </table></div>`;
+            } catch (err) {
+                document.getElementById('all-evt-loading').classList.add('hidden');
+            }
+        }
+
+        async function loadAllParticipants() {
+            try {
+                const data = await api.get('/admin/participants/all');
+                const items = data.participants || [];
+                document.getElementById('all-part-loading').classList.add('hidden');
+
+                document.getElementById('all-part-list').innerHTML = `<div class="table-container"><table>
+                    <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Phone</th><th>Registered On</th></tr></thead>
+                    <tbody>
+                    ${items.map(p => `
+                        <tr>
+                            <td><strong>${p.full_name}</strong></td>
+                            <td>@${p.username}</td>
+                            <td>${p.email}</td>
+                            <td>${p.phone_number || 'N/A'}</td>
+                            <td>${formatDate(p.created_at)}</td>
+                        </tr>
+                    `).join('')}
+                    </tbody>
+                </table></div>`;
+            } catch (err) {
+                document.getElementById('all-part-loading').classList.add('hidden');
+            }
+        }
+
+        document.getElementById('create-admin-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.textContent;
+            btn.textContent = 'Creating...';
+            btn.disabled = true;
+
+            try {
+                const payload = {
+                    full_name: document.getElementById('admin-name').value,
+                    email: document.getElementById('admin-email').value,
+                    password: document.getElementById('admin-password').value
+                };
+                const res = await api.post('/admin/create-admin', payload);
+                if (res.admin) {
+                    showToast('Admin created successfully!', 'success');
+                    e.target.reset();
+                } else {
+                    showToast(res.message || 'Failed to create admin.', 'error');
+                }
+            } catch (err) {
+                showToast(err.message || 'Error creating admin', 'error');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        async function refreshAll() {
+            await Promise.all([
+                loadStats(),
+                loadPendingInstitutes(),
+                loadPendingEvents(),
+                loadAllInstitutes(),
+                loadAllEvents(),
+                loadAllParticipants()
+            ]);
+        }
+
+        // Details Modal Logic
+        function showDetails(type, id, data) {
+            const modal = document.getElementById('details-modal');
+            const title = document.getElementById('details-title');
+            const body = document.getElementById('details-body');
+
+            // Helper for empty fields
+            const val = (v) => (v === null || v === undefined || v === "" || v === "null") ? '-' : v;
+
+            if (type === 'institute') {
+                title.textContent = `🏛️ Institute: ${val(data.name)}`;
+                body.innerHTML = `
+                    <div class="details-grid">
+                        <div class="details-label">ID</div><div class="details-value">#${val(data.id)}</div>
+                        <div class="details-label">Name</div><div class="details-value">${val(data.name)}</div>
+                        <div class="details-label">Handle</div><div class="details-value">@${val(data.username)}</div>
+                        <div class="details-label">Email</div><div class="details-value">${val(data.email)}</div>
+                        <div class="details-label">Status</div><div class="details-value">${statusBadge(data.approval_status)}</div>
+                        <div class="details-label">Applied</div><div class="details-value">${formatDate(data.created_at)}</div>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <div class="details-label" style="margin-bottom: 0.5rem;">Full Details / About</div>
+                        <div class="card" style="padding: 1.5rem; background: var(--bg-glass); white-space: pre-wrap;">
+                            ${val(data.details)}
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'event') {
+                title.textContent = `📅 Event: ${val(data.title)}`;
+                
+                // Full high quality photo view
+                let imgHtml = `
+                    <div style="margin-bottom: 1.5rem;">
+                        <div class="details-label" style="margin-bottom: 0.5rem;">Event Banner</div>
+                        ${data.image_url ? `
+                            <img src="${data.image_url}" style="width: 100%; border-radius: var(--radius-md); max-height: 400px; object-fit: contain; background: #000; border: 1px solid var(--border-glass);">
+                        ` : `
+                            <div style="width: 100%; height: 200px; background: var(--bg-glass); display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: 3rem; opacity: 0.2;">🖼️</div>
+                        `}
+                    </div>
+                `;
+
+                body.innerHTML = `
+                    ${imgHtml}
+                    <div class="details-grid">
+                        <div class="details-label">ID</div><div class="details-value">#${val(data.id)}</div>
+                        <div class="details-label">Title</div><div class="details-value"><strong>${val(data.title)}</strong></div>
+                        <div class="details-label">Institute</div><div class="details-value">${val(data.institute_name)}</div>
+                        <div class="details-label">Start Date</div><div class="details-value">${formatDate(data.date)}</div>
+                        <div class="details-label">End Date</div><div class="details-value">${formatDate(data.end_date)}</div>
+                        <div class="details-label">Location</div><div class="details-value">${val(data.location)}</div>
+                        <div class="details-label">Coordinates</div><div class="details-value">${val(data.latitude)}, ${val(data.longitude)}</div>
+                        <div class="details-label">Extra Locs.</div><div class="details-value">${val(data.extra_locations)}</div>
+                        <div class="details-label">Elim. Rounds</div><div class="details-value"><span class="badge badge-pending">${val(data.num_rounds)} ROUNDS</span></div>
+                        <div class="details-label">Capacity</div><div class="details-value">${val(data.capacity)} slots</div>
+                        <div class="details-label">Status</div><div class="details-value">${statusBadge(data.approval_status)}</div>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <div class="details-label" style="margin-bottom: 0.5rem;">Event Description</div>
+                        <div class="card" style="padding: 1.5rem; background: var(--bg-glass); font-size: 0.95rem; white-space: pre-wrap;">
+                            ${val(data.description)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            modal.classList.remove('hidden');
+
+            // Handle decision section
+            const decisionSec = document.getElementById('decision-section');
+            const reasonInput = document.getElementById('decision-reason');
+            if (data.approval_status === 'PENDING') {
+                decisionSec.classList.remove('hidden');
+                reasonInput.value = '';
+                
+                document.getElementById('btn-approve-modal').onclick = () => {
+                    const r = reasonInput.value.trim();
+                    if (!r) return showToast('Please provide a reason', 'error');
+                    if (type === 'institute') approveInstitute(id, 'APPROVED', r);
+                    else approveEvent(id, 'APPROVED', r);
+                };
+                document.getElementById('btn-reject-modal').onclick = () => {
+                    const r = reasonInput.value.trim();
+                    if (!r) return showToast('Please provide a reason', 'error');
+                    if (type === 'institute') approveInstitute(id, 'REJECTED', r);
+                    else approveEvent(id, 'REJECTED', r);
+                };
+            } else {
+                decisionSec.classList.add('hidden');
+            }
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('details-modal').classList.add('hidden');
+        }
+
+        // Close on backdrop click
+        window.onclick = function(event) {
+            const modal = document.getElementById('details-modal');
+            if (event.target == modal) closeDetailsModal();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshAll();
+            // Poll every 10 seconds for updates
+            setInterval(refreshAll, 10000);
+        });
+    </script>
+</body>
+</html>
