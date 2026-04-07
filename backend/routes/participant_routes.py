@@ -157,6 +157,23 @@ def mark_notification_read(notification_id):
     return jsonify({"message": "Notification marked as read"}), 200
 
 
+@participant_bp.patch("/notifications/read-all")
+@jwt_required()
+def mark_all_notifications_read():
+    """Mark all unread notifications as read for the current user."""
+    from models.notification import Notification
+    uid = int(current_user_id())
+    
+    # Update all unread notifications for this user
+    unread_count = Notification.query.filter_by(user_id=uid, is_read=False).count()
+    
+    if unread_count > 0:
+        Notification.query.filter_by(user_id=uid, is_read=False).update({"is_read": True})
+        db.session.commit()
+    
+    return jsonify({"message": f"{unread_count} notifications marked as read"}), 200
+
+
 @participant_bp.get("/events/<int:event_id>/updates")
 @jwt_required()
 def get_event_updates(event_id):

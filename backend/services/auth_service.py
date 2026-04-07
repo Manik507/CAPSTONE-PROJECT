@@ -31,7 +31,7 @@ def register_user(db, email, username, password, role, full_name, phone_number=N
 
     existing = User.query.filter_by(email=email).first()
     if existing:
-        if existing.check_password(password):
+        if password and existing.check_password(password):
             return existing, False
         raise ApiError(
             "Email already registered",

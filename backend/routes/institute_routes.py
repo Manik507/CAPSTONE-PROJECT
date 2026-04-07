@@ -143,34 +143,20 @@ def post_event_update(event_id):
 
 @institute_bp.post("/events/<int:event_id>/qualify")
 @jwt_required()
-@role_required("INSTITUTE", "VOLUNTEER")
+@role_required("INSTITUTE")
 def qualify_participants(event_id):
     from models.event import Event
     from models.participant import Participant
     from models.notification import Notification
 
     uid = int(current_user_id())
+    institute = Institute.query.filter_by(user_id=uid).first()
+    if not institute:
+        raise ApiError("Institute not found", status_code=404)
+
     event = Event.query.get(event_id)
-    if not event:
-        raise ApiError("Event not found", status_code=404)
-
-    # Check ownership
-    from datetime import datetime, timezone
-    now = datetime.now(timezone.utc)
-    user = User.query.get(uid)
-    
-    if user.role == "VOLUNTEER":
-        from models.volunteer import Volunteer
-        v = Volunteer.query.filter_by(user_id=uid, event_id=event_id).first()
-        if not v:
-            raise ApiError("Not authorized for this event", status_code=403)
-        if event.end_date and event.end_date.replace(tzinfo=timezone.utc) < now:
-            raise ApiError("Cannot qualify participants for a completed event", status_code=403)
-
-    elif user.role == "INSTITUTE":
-        institute = Institute.query.filter_by(user_id=uid).first()
-        if not institute or event.institute_id != institute.id:
-            raise ApiError("Not authorized", status_code=403)
+    if not event or event.institute_id != institute.id:
+        raise ApiError("Event not found or unauthorized", status_code=403)
 
     data = request.get_json(silent=True) or {}
     user_ids = data.get("user_ids", [])
@@ -179,30 +165,40 @@ def qualify_participants(event_id):
     if not user_ids or not target_round:
         raise ApiError("user_ids and target_round are required", status_code=400)
 
+    try:
+        target_round = int(target_round)
+    except (ValueError, TypeError):
+        raise ApiError("target_round must be an integer", status_code=400)
+
     if target_round > event.num_rounds:
         raise ApiError(f"Event only has {event.num_rounds} rounds", status_code=400)
 
-    # Filter to only PAID participants among the provided IDs
+    # Filter to only PAID participants among the provided user IDs
     participants = Participant.query.filter(
         Participant.event_id == event_id,
-        Participant.user_id.in_(user_ids)
+        Participant.user_id.in_(user_ids),
+        Participant.payment_status == "PAID"
     ).all()
 
     qualified_count = 0
     for p in participants:
-        if p.payment_status != "PAID":
-            continue
         p.qualified_round = target_round
         qualified_count += 1
         
         # Notify the user
         notif = Notification(
             user_id=p.user_id,
-            title=f"Round Progression: {event.title}",
-            message=f"Congratulations! You have qualified for Round {target_round}.",
-            type="ROUND_QUALIFIED"
+            title=f"Qualified for Round {target_round}! 🏆",
+            message=f"Congratulations! You have qualified for Round {target_round} of the event '{event.title}'.",
+            type="EVENT_UPDATE"
         )
         db.session.add(notif)
+
+    db.session.commit()
+    return jsonify({
+        "message": f"Successfully qualified {qualified_count} participants for Round {target_round}",
+        "qualified_count": qualified_count
+    }), 200
 
 
 @institute_bp.post("/volunteers/create")
@@ -239,6 +235,13 @@ def create_volunteer():
             raise ApiError("Password and Name are required for NEW volunteers", status_code=400)
         
         username = f"vol_{email.split('@')[0]}"
+        # Ensure username is unique
+        counter = 1
+        base_username = username
+        while User.query.filter_by(username=username).first():
+            username = f"{base_username}{counter}"
+            counter += 1
+
         try:
             user, _ = register_user(db=db, email=email, username=username, password=password, role="VOLUNTEER", full_name=full_name)
         except ApiError as e:
@@ -246,12 +249,12 @@ def create_volunteer():
     else:
         # Ensure the user has VOLUNTEER role
         if user.role != "VOLUNTEER":
-            raise ApiError("This user exists but is not a volunteer", status_code=400)
+            raise ApiError("This user exists but is not a volunteer. Only volunteers can be assigned to events.", status_code=400)
     
     # Check if already assigned to this event
     existing_v = Volunteer.query.filter_by(user_id=user.id, event_id=event_id).first()
     if existing_v:
-        return jsonify({"message": "Volunteer already assigned to this event", "volunteer": existing_v.to_dict()}), 200
+        return jsonify({"message": "Volunteer is already assigned to this event", "volunteer": existing_v.to_dict()}), 200
 
     # Create Volunteer link
     v = Volunteer(user_id=user.id, event_id=event_id, institute_id=institute.id)

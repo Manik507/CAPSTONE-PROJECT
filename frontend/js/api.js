@@ -56,6 +56,7 @@ const api = {
     // Notifications
     async getNotifications() { return this.get('/notifications'); },
     async markRead(id) { return this.patch(`/notifications/${id}/read`); },
+    async markAllRead() { return this.patch('/notifications/read-all'); },
 
     // Event Updates
     async getEventUpdates(eventId) { return this.get(`/events/${eventId}/updates`); },

@@ -132,10 +132,14 @@
         }
 
         async function markAllAsRead() {
-            // Simple approach: mark visible unread as read
-            const container = document.getElementById('notif-list');
-            const unreadItems = container.querySelectorAll('.notif-item.unread');
-            loadNotifications();
+            try {
+                await api.markAllRead();
+                showToast('All notifications cleared', 'success');
+                loadNotifications();
+            } catch (err) {
+                console.error('Failed to mark all as read', err);
+                showToast('Failed to clear notifications', 'error');
+            }
         }
 
         async function loadRewardHistory() {

@@ -128,6 +128,13 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
             z-index: 1000; display: flex; align-items: center; justify-content: center;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        .modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 100%;
         }
         .details-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 0.75rem; margin-top: 1rem; }
         .details-label { font-weight: 600; opacity: 0.6; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -217,13 +224,30 @@
                                 ` : (u.role === 'ADMIN' ? `
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
                                         <span class="badge badge-pending">🛡️ Decision by ${h.admin_name}</span>
-                                        <button class="btn btn-sm btn-secondary" onclick="viewTargetDetails('${h.target_type}', ${h.target_id})">🔍 View Target Details</button>
+                                        <button class="btn btn-sm btn-secondary view-details-btn" 
+                                            data-target-type="${h.target_type}" 
+                                            data-target-id="${h.target_id}"
+                                            data-admin-decision="${escapeHtml(h.institute_description || '')}">
+                                            🔍 View Target Details
+                                        </button>
                                     </div>
                                 ` : '')}
                             </div>
                             <div class="notif-time">${formatDate(h.event_date)}</div>
                         </div>
                     `).join('');
+                    
+                    // Add click listeners to view details buttons
+                    document.querySelectorAll('.view-details-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const type = e.currentTarget.dataset.targetType;
+                            const id = parseInt(e.currentTarget.dataset.targetId);
+                            // Decode HTML entities from data attribute
+                            const decisionEncoded = e.currentTarget.dataset.adminDecision;
+                            const decision = decisionEncoded ? decisionEncoded.replace(/&#10;/g, '\n').replace(/&#13;/g, '\r').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#039;/g, "'") : '';
+                            viewTargetDetails(type, id, decision);
+                        });
+                    });
                 }
             } catch (err) {
                 console.error('Profile load error:', err);
@@ -351,6 +375,18 @@
 
         editToggleBtn.addEventListener('click', () => toggleEditMode());
 
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;')
+                .replace(/\n/g, '&#10;')
+                .replace(/\r/g, '&#13;');
+        }
+
         function closeModal() {
             document.getElementById('list-modal').classList.add('hidden');
             if (listPollInterval) {
@@ -361,33 +397,59 @@
             loadProfile(true);
         }
 
-        async function viewTargetDetails(type, id) {
+        async function viewTargetDetails(type, id, adminDecision = null) {
             try {
                 let data;
+                let endpoint;
                 if (type === 'INSTITUTE') {
-                    const res = await api.get(`/institutes/${id}`);
-                    data = res.institute;
-                    showDetails('institute', id, data);
+                    endpoint = `/institutes/${id}`;
                 } else {
-                    const res = await api.get(`/events/${id}`);
-                    data = res.event;
-                    showDetails('event', id, data);
+                    endpoint = `/events/${id}`;
                 }
+                
+                const res = await api.get(endpoint);
+                
+                if (type === 'INSTITUTE') {
+                    data = res.institute;
+                } else {
+                    data = res.event;
+                }
+                
+                if (!data) {
+                    showToast('No data found for this item', 'error');
+                    return;
+                }
+                
+                showDetails(type.toLowerCase(), id, data, adminDecision);
             } catch (err) {
+                console.error('Error loading target details:', err);
                 showToast('Target entity might have been deleted or not found.', 'error');
             }
         }
 
         // Details Modal Logic
-        function showDetails(type, id, data) {
+        function showDetails(type, id, data, adminDecision = null) {
             const modal = document.getElementById('details-modal');
             const title = document.getElementById('details-title');
             const body = document.getElementById('details-body');
+            
+            if (!modal || !title || !body) {
+                return;
+            }
+            
             const val = (v) => (v === null || v === undefined || v === "" || v === "null") ? '-' : v;
 
             if (type === 'institute') {
                 title.innerHTML = `🏛️ Institute: ${val(data.name)}`;
                 body.innerHTML = `
+                    ${adminDecision ? `
+                        <div style="margin-bottom: 1.5rem;">
+                            <div class="details-label" style="margin-bottom: 0.5rem;">Admin Decision</div>
+                            <div class="card" style="padding: 1rem; background: rgba(59, 130, 246, 0.1); border: 1px solid var(--accent-blue); white-space: pre-wrap;">
+                                ${val(adminDecision)}
+                            </div>
+                        </div>
+                    ` : ''}
                     <div class="details-grid">
                         <div class="details-label">ID</div><div class="details-value">#${val(data.id)}</div>
                         <div class="details-label">Name</div><div class="details-value">${val(data.name)}</div>
@@ -405,6 +467,14 @@
             } else if (type === 'event') {
                 title.innerHTML = `📅 Event: ${val(data.title)}`;
                 body.innerHTML = `
+                    ${adminDecision ? `
+                        <div style="margin-bottom: 1.5rem;">
+                            <div class="details-label" style="margin-bottom: 0.5rem;">Admin Decision</div>
+                            <div class="card" style="padding: 1rem; background: rgba(59, 130, 246, 0.1); border: 1px solid var(--accent-blue); white-space: pre-wrap;">
+                                ${val(adminDecision)}
+                            </div>
+                        </div>
+                    ` : ''}
                     ${data.image_url ? `<img src="${data.image_url}" style="width: 100%; border-radius: var(--radius-md); max-height: 300px; object-fit: contain; background: #000; border: 1px solid var(--border-glass); margin-bottom: 1.5rem;">` : ''}
                     <div class="details-grid">
                         <div class="details-label">ID</div><div class="details-value">#${val(data.id)}</div>
