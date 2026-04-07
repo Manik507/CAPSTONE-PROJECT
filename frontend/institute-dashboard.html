@@ -165,7 +165,11 @@
                                 <select id="part-event"><option value="">Select an event…</option></select>
                             </div>
                             <div class="form-group">
+<<<<<<< HEAD
                                 <label for="part-filter">Payment Status Filter (for PDF)</label>
+=======
+                                <label for="part-filter">Status Filter</label>
+>>>>>>> temp-fix
                                 <select id="part-filter">
                                     <option value="ALL">All Participants</option>
                                     <option value="PAID">Paid Only</option>
@@ -173,6 +177,20 @@
                                 </select>
                             </div>
                         </div>
+<<<<<<< HEAD
+=======
+                        <div id="round-qualification-container" class="mt-4 p-4 border-glass rounded-lg hidden">
+                            <h3 class="mb-3">Round Qualification</h3>
+                            <div class="form-group mb-3">
+                                <label for="target-round-select">Qualify Selected for Round:</label>
+                                <select id="target-round-select" class="w-full">
+                                    <option value="">Select Round...</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary w-full" onclick="qualifySelectedParticipants()">Qualify Selected Participants</button>
+                            <p class="mt-2 text-sm opacity-70 italic">Note: Only PAID participants can be qualified for the next round.</p>
+                        </div>
+>>>>>>> temp-fix
                         <div id="participants-loading" class="hidden text-center"><div class="spinner"></div></div>
                         <div id="participants-list"></div>
                         <div id="participants-actions" class="mt-2 hidden">
@@ -588,8 +606,23 @@
                     if (filteredEvents.length === 0) {
                         sel.innerHTML = '<option value="">No events available</option>';
                     } else {
+<<<<<<< HEAD
                         filteredEvents.forEach(ev => {
                             sel.innerHTML += `<option value="${ev.id}">${ev.title}</option>`;
+=======
+                        // Sort events: active first, then past
+                        const sortedEvents = [...filteredEvents].sort((a, b) => {
+                            const aPast = a.end_date ? new Date(a.end_date) <= now : false;
+                            const bPast = b.end_date ? new Date(b.end_date) <= now : false;
+                            if (aPast === bPast) return 0;
+                            return aPast ? 1 : -1;
+                        });
+
+                        sortedEvents.forEach(ev => {
+                            const isPast = ev.end_date ? new Date(ev.end_date) <= now : false;
+                            const title = isPast ? `${ev.title} (Completed)` : ev.title;
+                            sel.innerHTML += `<option value="${ev.id}">${title}</option>`;
+>>>>>>> temp-fix
                         });
                     }
                     // Restore previous selection if it still exists in the new list
@@ -695,6 +728,10 @@
             const isPast = event && event.end_date ? new Date(event.end_date) <= now : false;
             const isVolunteer = currentUser.role === 'VOLUNTEER';
             const hideActions = isVolunteer && isPast;
+<<<<<<< HEAD
+=======
+            const isInstitute = currentUser.role === 'INSTITUTE';
+>>>>>>> temp-fix
             
             let filtered = currentParticipants;
             if (filter === 'PAID') {
@@ -705,6 +742,7 @@
 
             if (filtered.length === 0) {
                 container.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><h3>No participants found for this criteria</h3></div>`;
+<<<<<<< HEAD
                 return;
             }
 
@@ -713,10 +751,41 @@
                 <tbody id="participant-table-body">
                 ${filtered.map(p => `
                     <tr>
+=======
+                document.getElementById('round-qualification-container').classList.add('hidden');
+                return;
+            }
+
+            // Qualification UI
+            if (isInstitute && event && event.num_rounds > 1) {
+                const roundSelect = document.getElementById('target-round-select');
+                roundSelect.innerHTML = '<option value="">Select Round...</option>';
+                for (let i = 2; i <= event.num_rounds; i++) {
+                    roundSelect.innerHTML += `<option value="${i}">Round ${i}</option>`;
+                }
+                document.getElementById('round-qualification-container').classList.remove('hidden');
+            } else {
+                document.getElementById('round-qualification-container').classList.add('hidden');
+            }
+
+            container.innerHTML = `<div class="table-container"><table>
+                <thead><tr>
+                    ${isInstitute ? '<th><input type="checkbox" id="select-all-participants"></th>' : ''}
+                    <th>Name</th><th>Email</th><th>Phone</th><th>Payment</th><th>Round</th><th>Reg ID</th><th>Registered</th>${hideActions ? '' : '<th>Actions</th>'}
+                </tr></thead>
+                <tbody id="participant-table-body">
+                ${filtered.map(p => `
+                    <tr>
+                        ${isInstitute ? `<td><input type="checkbox" class="participant-check" data-uid="${p.user_id}" ${p.payment_status.toUpperCase() !== 'PAID' ? 'disabled title="Only paid participants can qualify"' : ''}></td>` : ''}
+>>>>>>> temp-fix
                         <td>${p.user_name}</td>
                         <td>${p.user_email}</td>
                         <td>${p.user_phone || 'N/A'}</td>
                         <td id="payment-badge-${p.id}">${statusBadge(p.payment_status)}</td>
+<<<<<<< HEAD
+=======
+                        <td>Round ${p.qualified_round || 1}</td>
+>>>>>>> temp-fix
                         <td><code style="font-size:0.75rem;">${p.registration_id || '-'}</code></td>
                         <td>${formatDate(p.created_at)}</td>
                         ${hideActions ? '' : `
@@ -727,9 +796,52 @@
                 `).join('')}
                 </tbody>
             </table></div>`;
+<<<<<<< HEAD
             document.getElementById('participants-actions').classList.remove('hidden');
         }
 
+=======
+
+            if (isInstitute) {
+                document.getElementById('select-all-participants').addEventListener('change', (e) => {
+                    document.querySelectorAll('.participant-check:not([disabled])').forEach(cb => cb.checked = e.target.checked);
+                });
+            }
+
+            document.getElementById('participants-actions').classList.remove('hidden');
+        }
+
+        async function qualifySelectedParticipants() {
+            const eventId = document.getElementById('part-event').value;
+            const targetRound = document.getElementById('target-round-select').value;
+            const checked = document.querySelectorAll('.participant-check:checked');
+            const userIds = Array.from(checked).map(c => parseInt(c.dataset.uid));
+
+            if (!targetRound) {
+                showToast('Please select a target round', 'error');
+                return;
+            }
+            if (userIds.length === 0) {
+                showToast('Please select at least one paid participant', 'error');
+                return;
+            }
+
+            try {
+                const res = await api.post(`/institutes/events/${eventId}/qualify`, {
+                    user_ids: userIds,
+                    target_round: parseInt(targetRound)
+                });
+                showToast(res.message, 'success');
+                // Refresh data
+                const data = await api.get(`/participants/${eventId}`);
+                currentParticipants = data.participants || [];
+                renderParticipants();
+            } catch (err) {
+                showToast(err.message || 'Qualification failed', 'error');
+            }
+        }
+
+>>>>>>> temp-fix
         // Filter change listener
         document.getElementById('part-filter').addEventListener('change', () => {
             if (currentParticipants.length > 0) renderParticipants();
@@ -832,9 +944,17 @@
 
             try {
                 const data = await api.get(`/participants/${eventId}`);
+<<<<<<< HEAD
                 const parts = data.participants || [];
                 if (parts.length === 0) {
                     list.innerHTML = '<p>No participants found for this event.</p>';
+=======
+                const allParts = data.participants || [];
+                const parts = allParts.filter(p => (p.payment_status || '').toUpperCase() === 'PAID');
+
+                if (parts.length === 0) {
+                    list.innerHTML = '<p class="text-center p-4">No paid participants found for this event. Winners can only be selected from paid participants.</p>';
+>>>>>>> temp-fix
                     return;
                 }
 
