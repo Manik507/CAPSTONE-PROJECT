@@ -45,12 +45,14 @@ def set_event_results(event_id):
     EventResult.query.filter_by(event_id=event_id).delete()
 
     # Create new results
+    winner_uids = []
     for w in winners:
         user_id = w.get("user_id")
+        if not user_id: continue
+        
         # Verify user is a participant
         p = Participant.query.filter_by(event_id=event_id, user_id=user_id).first()
-        if not p:
-            continue # Or raise error
+        if not p: continue
 
         res = EventResult(
             event_id=event_id,
@@ -60,10 +62,11 @@ def set_event_results(event_id):
             prize_description=w.get("prize_description", "")
         )
         db.session.add(res)
-        
-        # Award XP and Trophies if participant is PAID
-        from services.reward_service import award_winner_reward
-        award_winner_reward(user_id, event_id, res.rank, res.prize_name)
+        winner_uids.append(user_id)
+
+    # Award XP and Trophies to ALL participants (Winners: 100XP+1T, Others: 50XP+0T)
+    from services.reward_service import award_finalization_rewards
+    award_finalization_rewards(event_id, winner_uids)
 
     db.session.commit()
     return jsonify({"message": "Event results finalized successfully", "results": [r.to_dict() for r in EventResult.query.filter_by(event_id=event_id).all()]}), 200

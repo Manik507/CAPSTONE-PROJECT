@@ -44,7 +44,6 @@ class Event(db.Model):
             "extra_locations": self.extra_locations,
             "num_rounds": self.num_rounds,
             "fees": self.fees,
-            "capacity": self.capacity,
             "image_url": self.image_url,
             "approval_status": self.approval_status,
             "institute_name": self.institute.name if self.institute else None,

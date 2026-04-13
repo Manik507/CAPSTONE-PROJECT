@@ -274,7 +274,7 @@
                 document.getElementById('evt-empty').classList.add('hidden');
 
                 document.getElementById('evt-list').innerHTML = `<div class="table-container"><table>
-                    <thead><tr><th>Title</th><th>Institute</th><th>Date</th><th>Location</th><th>Capacity</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Title</th><th>Institute</th><th>Date</th><th>Location</th><th>Actions</th></tr></thead>
                     <tbody>
                     ${items.map(e => `
                         <tr>
@@ -282,7 +282,6 @@
                             <td>${e.institute_name || '-'}</td>
                             <td>${formatDate(e.date)}</td>
                             <td>${e.location}</td>
-                            <td>${e.capacity}</td>
                             <td>
                                 <div class="btn-group">
                                     <button class="btn btn-secondary btn-sm" onclick='showDetails("event", ${e.id}, ${JSON.stringify(e).replace(/'/g, "&apos;")})'>🔍 Details</button>
@@ -332,7 +331,7 @@
                 document.getElementById('all-evt-loading').classList.add('hidden');
 
                 document.getElementById('all-evt-list').innerHTML = `<div class="table-container"><table>
-                    <thead><tr><th>Title</th><th>Institute</th><th>Date</th><th>Status</th><th>Capacity</th></tr></thead>
+                    <thead><tr><th>Title</th><th>Institute</th><th>Date</th><th>Status</th></tr></thead>
                     <tbody>
                     ${items.map(e => `
                         <tr>
@@ -340,7 +339,6 @@
                             <td>${e.institute_name || '-'}</td>
                             <td>${formatDate(e.date)}</td>
                             <td>${statusBadge(e.approval_status)}</td>
-                            <td>${e.capacity}</td>
                             <td><button class="btn btn-secondary btn-sm" onclick='showDetails("event", ${e.id}, ${JSON.stringify(e).replace(/'/g, "&apos;")})'>🔍 View</button></td>
                         </tr>
                     `).join('')}
@@ -469,7 +467,6 @@
                         <div class="details-label">Coordinates</div><div class="details-value">${val(data.latitude)}, ${val(data.longitude)}</div>
                         <div class="details-label">Extra Locs.</div><div class="details-value">${val(data.extra_locations)}</div>
                         <div class="details-label">Elim. Rounds</div><div class="details-value"><span class="badge badge-pending">${val(data.num_rounds)} ROUNDS</span></div>
-                        <div class="details-label">Capacity</div><div class="details-value">${val(data.capacity)} slots</div>
                         <div class="details-label">Status</div><div class="details-value">${statusBadge(data.approval_status)}</div>
                     </div>
                     <div style="margin-top: 1.5rem;">

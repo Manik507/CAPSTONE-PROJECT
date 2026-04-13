@@ -232,6 +232,7 @@ def create_volunteer():
     password = data.get("password")
     full_name = data.get("full_name")
     event_id = data.get("event_id")
+    task = data.get("task")
 
     if not email or not event_id:
         raise ApiError("Email and Event ID are required", status_code=400)
@@ -243,12 +244,10 @@ def create_volunteer():
     # Check if user exists
     user = User.query.filter_by(email=email).first()
     if not user:
-        # Register the user as a VOLUNTEER (requires password and name)
         if not password or not full_name:
             raise ApiError("Password and Name are required for NEW volunteers", status_code=400)
         
         username = f"vol_{email.split('@')[0]}"
-        # Ensure username is unique
         counter = 1
         base_username = username
         while User.query.filter_by(username=username).first():
@@ -260,17 +259,19 @@ def create_volunteer():
         except ApiError as e:
             raise e
     else:
-        # Ensure the user has VOLUNTEER role
         if user.role != "VOLUNTEER":
-            raise ApiError("This user exists but is not a volunteer. Only volunteers can be assigned to events.", status_code=400)
+            raise ApiError("This user exists but is not a volunteer.", status_code=400)
     
-    # Check if already assigned to this event
+    # Check if already assigned to this specific event
     existing_v = Volunteer.query.filter_by(user_id=user.id, event_id=event_id).first()
     if existing_v:
-        return jsonify({"message": "Volunteer is already assigned to this event", "volunteer": existing_v.to_dict()}), 200
+        # Update the task if already assigned
+        existing_v.task = task
+        db.session.commit()
+        return jsonify({"message": "Volunteer task updated", "volunteer": existing_v.to_dict()}), 200
 
     # Create Volunteer link
-    v = Volunteer(user_id=user.id, event_id=event_id, institute_id=institute.id)
+    v = Volunteer(user_id=user.id, event_id=event_id, institute_id=institute.id, task=task)
     db.session.add(v)
     db.session.commit()
 
@@ -303,3 +304,19 @@ def get_all_volunteers():
     if not vols:
         return jsonify({"volunteers": [], "message": "No volunteers available"}), 200
     return jsonify({"volunteers": [v.to_dict() for v in vols]}), 200
+
+
+@institute_bp.get("/volunteers/platform")
+@jwt_required()
+@role_required("INSTITUTE")
+def get_platform_volunteers():
+    """Returns all users registered as VOLUNTEER on the entire platform."""
+    vols = User.query.filter_by(role="VOLUNTEER").all()
+    return jsonify({
+        "volunteers": [{
+            "id": u.id,
+            "full_name": u.full_name,
+            "email": u.email,
+            "username": u.username
+        } for u in vols]
+    }), 200

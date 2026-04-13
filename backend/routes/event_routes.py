@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from database.db import db
 from models.event import Event
@@ -74,7 +74,6 @@ def create_event():
         latitude=data.get("latitude"),
         longitude=data.get("longitude"),
         extra_locations=data.get("extra_locations"),
-        capacity=_to_int(data.get("capacity"), 100),
         num_rounds=_to_int(data.get("num_rounds"), 1),
         fees=_to_int(data.get("fees"), 0),
     )
@@ -137,13 +136,33 @@ def list_my_events():
 
 @events_bp.get("/<int:event_id>")
 def get_event(event_id):
+    from flask_jwt_extended import get_jwt_identity
+    from models.participant import Participant
+    
     event = Event.query.get(event_id)
     if not event:
         raise ApiError("Event not found", status_code=404)
     
     e_dict = event.to_dict()
+    
+    # Check registration status for current user if logged in
+    uid = None
+    try:
+        from flask_jwt_extended import verify_jwt_in_request
+        verify_jwt_in_request(optional=True)
+        uid = get_jwt_identity()
+    except:
+        pass
+
+    if uid:
+        participation = Participant.query.filter_by(user_id=int(uid), event_id=event_id).first()
+        e_dict["is_registered"] = participation is not None
+        if participation:
+            e_dict["payment_status"] = participation.payment_status
+    else:
+        e_dict["is_registered"] = False
+
     # Group participants by round
-    from models.participant import Participant
     parts = Participant.query.filter_by(event_id=event_id).all()
     
     # Only show PAID participants in the "Qualifiers" section

@@ -53,11 +53,6 @@
                                     <div class="stat-label">Location</div>
                                 </div>
                                 <div class="stat-card">
-                                    <div class="stat-icon">👥</div>
-                                    <div class="stat-value" id="event-capacity" style="font-size:1rem;"></div>
-                                    <div class="stat-label">Spots</div>
-                                </div>
-                                <div class="stat-card">
                                     <div class="stat-icon">🏷️</div>
                                     <div class="stat-value" id="event-fees" style="font-size:1rem;"></div>
                                     <div class="stat-label">Registration Fee</div>
@@ -151,7 +146,6 @@
                 document.getElementById('event-date').innerHTML = `<span style="display:block;font-size:0.85rem;opacity:0.7;">Started:</span> ${startStr}<br><span style="display:block;font-size:0.85rem;opacity:0.7;margin-top:4px;">Ends:</span> ${endStr}`;
 
                 document.getElementById('event-location').textContent = e.location;
-                document.getElementById('event-capacity').textContent = `${e.registered_count}/${e.capacity}`;
                 document.getElementById('event-fees').textContent = e.fees === 0 ? 'Free' : `₹ ${e.fees}`;
                 document.getElementById('event-rounds').textContent = `${e.num_rounds} Rounds`;
                 document.getElementById('event-status').innerHTML = statusBadge(e.approval_status);
@@ -192,8 +186,6 @@
                 } else if (user.role === 'PARTICIPANT' && e.approval_status === 'APPROVED') {
                     if (e.is_registered) {
                         actionArea.innerHTML = `<button class="btn btn-success btn-lg w-full" disabled>✅ Registered</button>`;
-                    } else if (e.registered_count >= e.capacity) {
-                        actionArea.innerHTML = `<button class="btn btn-secondary btn-lg w-full" disabled>🚫 House Full</button>`;
                     } else {
                         actionArea.innerHTML = `<button class="btn btn-primary btn-lg w-full" id="register-btn" onclick="registerForEvent()">🎯 Register for Event</button>`;
                     }

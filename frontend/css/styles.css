@@ -831,14 +831,62 @@ tr:hover td {
     background: var(--bg-secondary);
     border: 1px solid var(--border-glass);
     border-radius: var(--radius-lg);
-    width: 90%;
-    max-width: 560px;
-    max-height: 80vh;
+    width: 95%;
+    max-width: 500px;
+    max-height: 90vh;
     overflow-y: auto;
+    position: relative;
+    box-shadow: var(--shadow-lg);
+    animation: modalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalScale {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.modal-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-glass);
+    text-align: center;
+}
+
+.modal-header h2 { 
+    margin: 0; 
+    font-size: 1.4rem; 
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.modal-body {
     padding: 2rem;
 }
 
-.modal h2 { margin-bottom: 1.5rem; }
+.close-btn {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-glass);
+    color: var(--text-secondary);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: var(--transition);
+    z-index: 100;
+}
+
+.close-btn:hover {
+    background: var(--accent-red);
+    color: #fff;
+    border-color: var(--accent-red);
+    transform: rotate(90deg);
+}
 
 /* ── Tabs ── */
 .tabs {
@@ -1064,4 +1112,36 @@ tr:hover td {
 .search-item-handle {
     font-size: 0.8rem;
     color: var(--text-secondary);
+}
+/* Password Visibility Toggle */
+.password-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-input-container input {
+    padding-right: 45px;
+    width: 100%;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+}
+
+.password-toggle:hover {
+    color: var(--text-primary);
 }

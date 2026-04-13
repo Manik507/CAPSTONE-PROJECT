@@ -12,6 +12,7 @@ class Volunteer(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
     institute_id = db.Column(db.Integer, db.ForeignKey("institutes.id", ondelete="CASCADE"), nullable=False, index=True)
     
+    task = db.Column(db.String(500), nullable=True) # Role/Task description
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     user = db.relationship("User", backref=db.backref("volunteering", lazy="dynamic", cascade="all, delete-orphan"))
@@ -28,5 +29,6 @@ class Volunteer(db.Model):
             "user_username": self.user.username if self.user else None,
             "user_email": self.user.email if self.user else None,
             "event_title": self.event.title if self.event else None,
+            "task": self.task,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

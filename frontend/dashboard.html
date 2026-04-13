@@ -324,14 +324,15 @@
                 followBtn.className = `btn ${p.is_following ? 'btn-secondary' : 'btn-primary'}`;
                 followBtn.onclick = () => toggleFollow(p.id, p.is_following);
                 
-                document.getElementById('profile-modal').classList.remove('hidden');
+                document.getElementById('profile-modal-overlay').classList.add('active');
             } catch (err) {
+
                 showToast('Could not load profile', 'error');
             }
         }
 
         function closeProfileModal() {
-            document.getElementById('profile-modal').classList.add('hidden');
+            document.getElementById('profile-modal-overlay').classList.remove('active');
         }
 
 
@@ -345,14 +346,14 @@
         });
     </script>
 
-    <!-- Profile Modal -->
-    <div id="profile-modal" class="modal hidden">
-        <div class="modal-content" style="max-width: 400px; text-align: center;">
+    <!-- Profile Modal Overlay -->
+    <div id="profile-modal-overlay" class="modal-overlay" onclick="if(event.target === this) closeProfileModal()">
+        <div id="profile-modal" class="modal">
+            <button class="close-btn" onclick="closeProfileModal()">&times;</button>
             <div class="modal-header">
                 <h2>User Profile</h2>
-                <button class="close-btn" onclick="closeProfileModal()">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="text-align: center;">
                 <div style="font-size: 4rem; margin-bottom: 10px;">👤</div>
                 <h3 id="prof-name" class="mb-0">Full Name</h3>
                 <p id="prof-handle" class="opacity-70 mb-2">@username</p>

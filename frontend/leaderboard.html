@@ -100,6 +100,7 @@
             document.getElementById('tab-trophies').classList.toggle('active', sort === 'trophies');
             document.getElementById('tab-xp').classList.toggle('active', sort === 'xp');
             loadLeaderboard();
+            loadMyRank();
         }
 
         async function loadLeaderboard() {
@@ -147,6 +148,8 @@
                             ${secondaryStat}
                         </div>
                     `;
+                    li.style.cursor = 'pointer';
+                    li.onclick = () => viewProfile(entry.user_id);
                     list.appendChild(li);
                 });
 
@@ -159,7 +162,7 @@
         async function loadMyRank() {
             if (!api.isLoggedIn()) return;
             try {
-                const data = await api.get('/leaderboard/me');
+                const data = await api.get(`/leaderboard/me?sort=${currentSort}`);
                 if (data.leaderboard) {
                     const lb = data.leaderboard;
                     document.getElementById('my-rank-section').classList.remove('hidden');
@@ -171,6 +174,48 @@
             } catch (err) {}
         }
 
+        async function viewProfile(userId) {
+            if (!api.isLoggedIn()) {
+                showToast('Please login to view user profiles', 'error');
+                return;
+            }
+            try {
+                const data = await api.getUserProfile(userId);
+                const p = data.profile;
+                document.getElementById('prof-name').textContent = p.full_name;
+                document.getElementById('prof-handle').textContent = `@${p.username}`;
+                document.getElementById('prof-role').textContent = p.role;
+                document.getElementById('prof-xp').textContent = p.xp || 0;
+                document.getElementById('prof-trophies').textContent = p.trophies || 0;
+                document.getElementById('prof-followers').textContent = p.follower_count || 0;
+                document.getElementById('prof-following').textContent = p.following_count || 0;
+
+                const followBtn = document.getElementById('prof-follow-btn');
+                followBtn.textContent = p.is_following ? 'Unfollow' : 'Follow';
+                followBtn.className = `btn ${p.is_following ? 'btn-secondary' : 'btn-primary'}`;
+                followBtn.onclick = () => toggleFollow(p.id, p.is_following);
+                
+                document.getElementById('profile-modal-overlay').classList.add('active');
+            } catch (err) {
+                showToast('Could not load profile', 'error');
+            }
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profile-modal-overlay').classList.remove('active');
+        }
+
+        async function toggleFollow(userId, currentlyFollowing) {
+            try {
+                if (currentlyFollowing) await api.unfollowUser(userId);
+                else await api.followUser(userId);
+                showToast(currentlyFollowing ? 'Unfollowed' : 'Followed successfully! 🚀');
+                viewProfile(userId); // Refresh modal
+            } catch (err) {
+                showToast(err.message || 'Action failed', 'error');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             loadMyRank();
             loadLeaderboard();
@@ -180,5 +225,38 @@
             }, 10000);
         });
     </script>
+    <!-- Profile Modal Overlay -->
+    <div id="profile-modal-overlay" class="modal-overlay" onclick="if(event.target === this) closeProfileModal()">
+        <div id="profile-modal" class="modal">
+            <button class="close-btn" onclick="closeProfileModal()">&times;</button>
+            <div class="modal-header">
+                <h2>User Profile</h2>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <div style="font-size: 4rem; margin-bottom: 10px;">👤</div>
+                <h3 id="prof-name" class="mb-0">Full Name</h3>
+                <p id="prof-handle" class="opacity-70 mb-2">@username</p>
+                <div id="prof-role" class="badge badge-pending mb-3">ROLE</div>
+                
+                <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                    <div class="stat-card" style="padding: 10px;">
+                        <div class="stat-value" id="prof-xp" style="font-size: 1.2rem;">0</div>
+                        <div class="stat-label">XP</div>
+                    </div>
+                    <div class="stat-card" style="padding: 10px;">
+                        <div class="stat-value" id="prof-trophies" style="font-size: 1.2rem;">0</div>
+                        <div class="stat-label">Trophies</div>
+                    </div>
+                </div>
+
+                <div class="mb-3" style="display: flex; justify-content: space-around; font-size: 0.9rem;">
+                    <div><strong id="prof-followers">0</strong><br><span class="opacity-70">Followers</span></div>
+                    <div><strong id="prof-following">0</strong><br><span class="opacity-70">Following</span></div>
+                </div>
+
+                <button id="prof-follow-btn" class="btn btn-primary w-full">Follow</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

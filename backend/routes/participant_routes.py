@@ -30,9 +30,6 @@ def register_for_event(event_id):
     if existing:
         return jsonify({"participant": existing.to_dict(), "message": "Already registered"}), 200
 
-    current_count = Participant.query.filter_by(event_id=event_id).count()
-    if current_count >= event.capacity:
-        raise ApiError("Event is full", status_code=409)
 
     import random
     import string

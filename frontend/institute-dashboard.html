@@ -128,16 +128,10 @@
                                 <label for="event-announcement">Initial Announcement / Welcome News</label>
                                 <textarea id="event-announcement" placeholder="e.g. Welcome to Hackathon 2026! We are excited to have you."></textarea>
                             </div>
-                            <div class="form-group-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
-                                <div class="form-group">
-                                    <label for="event-rounds">Number of Rounds</label>
-                                    <input type="number" id="event-rounds" value="1" min="1" required>
-                                    <small class="opacity-60">Define how many elimination rounds this event has.</small>
-                                </div>
-                                <div class="form-group">
-                                    <label for="event-capacity">Total Capacity</label>
-                                    <input type="number" id="event-capacity" value="100" min="1" required>
-                                </div>
+                            <div class="form-group">
+                                <label for="event-rounds">Number of Rounds</label>
+                                <input type="number" id="event-rounds" value="1" min="1" required>
+                                <small class="opacity-60">Define how many elimination rounds this event has.</small>
                             </div>
                             <div class="form-group">
                                 <label for="event-fees">Registration Fees (₹)</label>
@@ -264,27 +258,41 @@
                     <div class="section-panel-body">
                         <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem;">
                             <div>
-                                <h3>Add Volunteer</h3>
+                                <h3>Add / Assign Volunteer</h3>
                                 <form id="vol-form">
+                                    <div class="form-group">
+                                        <label for="existing-vol-select">Select Existing Volunteer (Optional)</label>
+                                        <select id="existing-vol-select" onchange="fillVolunteerDetails(this.value)">
+                                            <option value="">-- New Volunteer --</option>
+                                        </select>
+                                        <small class="opacity-60">Pick a volunteer who previously worked for you.</small>
+                                    </div>
                                     <div class="form-group">
                                         <label for="vol-email">Email</label>
                                         <input type="email" id="vol-email" required>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="vol-password">Password</label>
-                                        <input type="password" id="vol-password" minlength="6">
-                                        <small class="opacity-60">Required for new volunteers ONLY.</small>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="vol-name">Full Name</label>
-                                        <input type="text" id="vol-name">
-                                        <small class="opacity-60">Required for new volunteers ONLY.</small>
+                                    <div id="new-vol-fields">
+                                        <div class="form-group">
+                                            <label for="vol-password">Password</label>
+                                            <input type="password" id="vol-password" minlength="6">
+                                            <small class="opacity-60">Required for new volunteers ONLY.</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="vol-name">Full Name</label>
+                                            <input type="text" id="vol-name">
+                                            <small class="opacity-60">Required for new volunteers ONLY.</small>
+                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <label for="vol-event">Assign to Event</label>
                                         <select id="vol-event" required><option value="">Select event…</option></select>
                                     </div>
-                                    <button type="submit" class="btn btn-primary w-full">Create Volunteer Account</button>
+                                    <div class="form-group">
+                                        <label for="vol-task">Task / Work Description</label>
+                                        <textarea id="vol-task" placeholder="e.g. Stage Management, Registration Desk, Tech Support..." rows="2"></textarea>
+                                        <small class="opacity-60">Describe what this volunteer will be doing for this event.</small>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-full">Assign Volunteer</button>
                                 </form>
                             </div>
                             <div>
@@ -626,14 +634,13 @@
 
                 const container = document.getElementById('events-list');
                 container.innerHTML = `<div class="table-container"><table>
-                    <thead><tr><th>Title</th><th>Date</th><th>Location</th><th>Capacity</th><th>Status</th></tr></thead>
+                    <thead><tr><th>Title</th><th>Date</th><th>Location</th><th>Status</th></tr></thead>
                     <tbody>
                     ${myEvents.map(e => `
                         <tr>
                             <td><strong>${e.title}</strong></td>
                             <td>${formatDate(e.date)}</td>
                             <td>${e.location}</td>
-                            <td>${e.registered_count}/${e.capacity}</td>
                             <td>${statusBadge(e.approval_status)}</td>
                         </tr>
                     `).join('')}
@@ -669,7 +676,6 @@
                 formData.append('longitude', parseFloat(lng));
                 formData.append('extra_locations', document.getElementById('event-extra-locations').value.trim());
                 formData.append('announcement', document.getElementById('event-announcement').value.trim());
-                formData.append('capacity', parseInt(document.getElementById('event-capacity').value) || 100);
                 formData.append('num_rounds', parseInt(document.getElementById('event-rounds').value) || 1);
                 formData.append('fees', parseInt(document.getElementById('event-fees').value) || 0);
                 
@@ -733,10 +739,12 @@
 
             if (isInstitute && event && event.num_rounds > 1) {
                 const roundSelect = document.getElementById('target-round-select');
+                const prevVal = roundSelect.value;
                 roundSelect.innerHTML = '<option value="">Select Round...</option>';
                 for (let i = 2; i <= event.num_rounds; i++) {
                     roundSelect.innerHTML += `<option value="${i}">Round ${i}</option>`;
                 }
+                if (prevVal) roundSelect.value = prevVal;
                 document.getElementById('round-qualification-container').classList.remove('hidden');
             } else {
                 document.getElementById('round-qualification-container').classList.add('hidden');
@@ -1055,10 +1063,10 @@
                 followBtn.textContent = p.is_following ? 'Unfollow' : 'Follow';
                 followBtn.className = `btn ${p.is_following ? 'btn-secondary' : 'btn-primary'}`;
                 followBtn.onclick = () => toggleFollow(p.id, p.is_following);
-                document.getElementById('profile-modal').classList.remove('hidden');
+                document.getElementById('profile-modal-overlay').classList.add('active');
             } catch (err) { showToast('Profile load failed', 'error'); }
         }
-        function closeProfileModal() { document.getElementById('profile-modal').classList.add('hidden'); }
+        function closeProfileModal() { document.getElementById('profile-modal-overlay').classList.remove('active'); }
 
         // Date Picker Restriction & Visible 12-hour Format
         document.addEventListener('DOMContentLoaded', () => {
@@ -1088,28 +1096,44 @@
         async function loadVolunteers() {
             const list = document.getElementById('vol-list');
             try {
+                // 1. Fetch My Assigned Volunteers for the table
                 const data = await api.get('/institutes/volunteers/all');
                 const vols = data.volunteers || [];
                 if (vols.length === 0) {
                     list.innerHTML = `<div class="text-center opacity-50 py-4">
                         <div style="font-size:3rem; margin-bottom:1rem;">👥</div>
-                        <div style="font-weight:600;">No volunteers available</div>
-                        <div class="opacity-70">Add volunteers to help manage your events!</div>
+                        <div style="font-weight:600;">No assignments yet</div>
+                        <div class="opacity-70">Assign volunteers to your events!</div>
                     </div>`;
-                    return;
+                } else {
+                    list.innerHTML = `<table>
+                        <thead><tr><th>Name</th><th>Email</th><th>Assigned Event</th><th>Role/Task</th></tr></thead>
+                        <tbody>
+                            ${vols.map(v => `
+                                <tr>
+                                    <td>${v.user_name}</td>
+                                    <td>${v.user_email}</td>
+                                    <td>${v.event_title}</td>
+                                    <td><span class="badge badge-pending" style="font-size:0.75rem;">${v.task || 'General Assistance'}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>`;
                 }
-                list.innerHTML = `<table>
-                    <thead><tr><th>Name</th><th>Email</th><th>Assigned Event</th></tr></thead>
-                    <tbody>
-                        ${vols.map(v => `
-                            <tr>
-                                <td>${v.user_name}</td>
-                                <td>${v.user_email}</td>
-                                <td>${v.event_title}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>`;
+
+                // 2. Fetch ALL Platform Volunteers for the dropdown
+                const platformRes = await api.get('/institutes/volunteers/platform');
+                const platformVols = platformRes.volunteers || [];
+                
+                const existingSelect = document.getElementById('existing-vol-select');
+                if (existingSelect) {
+                    const currentVal = existingSelect.value;
+                    existingSelect.innerHTML = '<option value="">-- New Volunteer --</option>';
+                    platformVols.forEach(v => {
+                        existingSelect.innerHTML += `<option value="${v.email}" data-name="${v.full_name}">${v.full_name} (@${v.username})</option>`;
+                    });
+                    existingSelect.value = currentVal;
+                }
             } catch (err) {
                 list.innerHTML = `
                     <div class="text-center opacity-50 py-4">
@@ -1119,6 +1143,30 @@
                     </div>
                 `;
             }
+        }
+        
+        function fillVolunteerDetails(email) {
+            const emailInput = document.getElementById('vol-email');
+            const nameInput = document.getElementById('vol-name');
+            const passwordInput = document.getElementById('vol-password');
+            const newFields = document.getElementById('new-vol-fields');
+            
+            if (!email) {
+                emailInput.value = '';
+                nameInput.value = '';
+                passwordInput.value = '';
+                newFields.classList.remove('hidden');
+                return;
+            }
+            
+            const select = document.getElementById('existing-vol-select');
+            const option = select.options[select.selectedIndex];
+            const name = option.dataset.name;
+            
+            emailInput.value = email;
+            nameInput.value = name || '';
+            passwordInput.value = ''; // Always clear password for existing check
+            newFields.classList.add('hidden');
         }
 
         document.getElementById('vol-form').addEventListener('submit', async (e) => {
@@ -1134,7 +1182,8 @@
                     email: document.getElementById('vol-email').value.trim(),
                     password: document.getElementById('vol-password').value,
                     full_name: document.getElementById('vol-name').value.trim(),
-                    event_id: document.getElementById('vol-event').value
+                    event_id: document.getElementById('vol-event').value,
+                    task: document.getElementById('vol-task').value.trim()
                 });
                 
                 showToast('Volunteer created successfully!', 'success');
@@ -1207,14 +1256,14 @@
         }
     </script>
 
-    <!-- Profile Modal -->
-    <div id="profile-modal" class="modal hidden">
-        <div class="modal-content" style="max-width: 400px; text-align: center;">
+    <!-- Profile Modal Overlay -->
+    <div id="profile-modal-overlay" class="modal-overlay" onclick="if(event.target === this) closeProfileModal()">
+        <div id="profile-modal" class="modal">
+            <button class="close-btn" onclick="closeProfileModal()">&times;</button>
             <div class="modal-header">
                 <h2>Entity Profile</h2>
-                <button class="close-btn" onclick="closeProfileModal()">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="text-align: center;">
                 <div style="font-size: 4rem; margin-bottom: 10px;">👤</div>
                 <h3 id="prof-name" class="mb-0">Full Name</h3>
                 <p id="prof-handle" class="opacity-70 mb-2">@username</p>

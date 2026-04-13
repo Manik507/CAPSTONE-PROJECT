@@ -116,6 +116,10 @@
         }
 
         async function viewProfile(userId) {
+            if (!api.isLoggedIn()) {
+                showToast('Please login to view user profiles', 'error');
+                return;
+            }
             try {
                 searchDropdown.classList.add('hidden');
                 const data = await api.getUserProfile(userId);
@@ -201,14 +205,16 @@
                     followBtn.classList.add('hidden');
                 }
                 
-                document.getElementById('profile-modal').classList.remove('hidden');
+                document.getElementById('profile-modal-overlay').classList.add('active');
             } catch (err) {
+                console.error(err);
+
                 showToast('Could not load profile', 'error');
             }
         }
 
         function closeProfileModal() {
-            document.getElementById('profile-modal').classList.add('hidden');
+            document.getElementById('profile-modal-overlay').classList.remove('active');
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -276,7 +282,6 @@
                                 <div class="card-meta">
                                     <span>📅 ${formatDate(e.date)}</span>
                                     <span>📍 ${e.location}</span>
-                                    <span>👥 ${e.registered_count}/${e.capacity}</span>
                                 </div>
                                 <div class="card-meta"><span>🏛️ ${e.institute_name}</span></div>
                             </div>
@@ -299,52 +304,52 @@
         });
     </script>
 
-    <!-- Profile Modal -->
-    <div id="profile-modal" class="modal hidden">
-        <div class="modal-content" style="max-width: 400px;">
+    <!-- Profile Modal Overlay -->
+    <div id="profile-modal-overlay" class="modal-overlay" onclick="if(event.target === this) closeProfileModal()">
+        <div id="profile-modal" class="modal">
+            <button class="close-btn" onclick="closeProfileModal()">&times;</button>
             <div class="modal-header">
                 <h2>User Profile</h2>
-                <button class="close-btn" onclick="closeProfileModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div style="text-align: center; margin-bottom: 1rem;">
-                    <div style="font-size: 4rem;">👤</div>
-                    <h3 id="prof-name" class="mb-0">Full Name</h3>
-                    <p id="prof-handle" class="opacity-70 mb-2">@username</p>
-                    <div id="prof-contact" class="mb-2" style="font-size: 0.85rem; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; display: inline-block; min-width: 200px; text-align: left;">
-                        <div style="margin-bottom:4px;">📧 <strong>Email:</strong> <span id="prof-email"></span></div>
-                        <div>📞 <strong>Phone:</strong> <span id="prof-phone"></span></div>
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <div style="font-size: 4rem;">👤</div>
+                        <h3 id="prof-name" class="mb-0">Full Name</h3>
+                        <p id="prof-handle" class="opacity-70 mb-2">@username</p>
+                        <div id="prof-contact" class="mb-2" style="font-size: 0.85rem; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; display: inline-block; min-width: 200px; text-align: left;">
+                            <div style="margin-bottom:4px;">📧 <strong>Email:</strong> <span id="prof-email"></span></div>
+                            <div>📞 <strong>Phone:</strong> <span id="prof-phone"></span></div>
+                        </div>
+                        <div id="prof-role" class="badge badge-pending mb-3">ROLE</div>
                     </div>
-                    <div id="prof-role" class="badge badge-pending mb-3">ROLE</div>
-                </div>
-                
-                <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;">
-                    <div class="stat-card" style="padding: 10px; text-align: center;">
-                        <div class="stat-value" id="prof-xp" style="font-size: 1.2rem;">✨ 0</div>
-                        <div class="stat-label">XP</div>
+                    
+                    <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;">
+                        <div class="stat-card" style="padding: 10px; text-align: center;">
+                            <div class="stat-value" id="prof-xp" style="font-size: 1.2rem;">✨ 0</div>
+                            <div class="stat-label">XP</div>
+                        </div>
+                        <div class="stat-card" style="padding: 10px; text-align: center;">
+                            <div class="stat-value" id="prof-trophies" style="font-size: 1.2rem;">🏆 0</div>
+                            <div class="stat-label">Trophies</div>
+                        </div>
                     </div>
-                    <div class="stat-card" style="padding: 10px; text-align: center;">
-                        <div class="stat-value" id="prof-trophies" style="font-size: 1.2rem;">🏆 0</div>
-                        <div class="stat-label">Trophies</div>
+
+                    <div class="mb-2" style="display: flex; justify-content: space-around; font-size: 0.9rem; text-align: center;">
+                        <div><strong id="prof-followers">0</strong><br><span class="opacity-70">Followers</span></div>
+                        <div><strong id="prof-following">0</strong><br><span class="opacity-70">Following</span></div>
                     </div>
-                </div>
 
-                <div class="mb-2" style="display: flex; justify-content: space-around; font-size: 0.9rem; text-align: center;">
-                    <div><strong id="prof-followers">0</strong><br><span class="opacity-70">Followers</span></div>
-                    <div><strong id="prof-following">0</strong><br><span class="opacity-70">Following</span></div>
-                </div>
+                    <div id="prof-mutual-container" class="mb-2 hidden" style="font-size: 0.85rem; background: var(--bg-glass); padding: 10px; border-radius: 8px;">
+                        <strong>🤝 Mutual Connections:</strong>
+                        <div id="prof-mutual-list" class="opacity-80"></div>
+                    </div>
 
-                <div id="prof-mutual-container" class="mb-2 hidden" style="font-size: 0.85rem; background: var(--bg-glass); padding: 10px; border-radius: 8px;">
-                    <strong>🤝 Mutual Connections:</strong>
-                    <div id="prof-mutual-list" class="opacity-80"></div>
-                </div>
+                    <div class="mb-3">
+                        <strong id="history-title-label">📜 Competition History:</strong>
+                        <div id="prof-history" style="max-height: 180px; overflow-y: auto; font-size: 0.85rem; margin-top: 5px;"></div>
+                    </div>
 
-                <div class="mb-3">
-                    <strong id="history-title-label">📜 Competition History:</strong>
-                    <div id="prof-history" style="max-height: 180px; overflow-y: auto; font-size: 0.85rem; margin-top: 5px;"></div>
-                </div>
-
-                <button id="prof-follow-btn" class="btn btn-primary w-full hidden">Follow</button>
+                    <button id="prof-follow-btn" class="btn btn-primary w-full hidden">Follow</button>
             </div>
         </div>
     </div>

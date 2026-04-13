@@ -26,9 +26,11 @@ def search_users():
         return jsonify({"users": []}), 200
 
     # Search in User.username or Institute.name
-    # We join with Institute (outer join) to includes users who are not institutes
+    # Join with Institute and filter: if it's an institute, it MUST be approved.
     users = User.query.outerjoin(Institute).filter(
         (User.username.ilike(f"%{query}%")) | (Institute.name.ilike(f"%{query}%")) | (User.full_name.ilike(f"%{query}%"))
+    ).filter(
+        (User.role != "INSTITUTE") | (Institute.approval_status == "APPROVED")
     ).limit(20).all()
 
     uid = int(current_user_id())
@@ -107,6 +109,11 @@ def get_user_profile(user_id):
 
     if u.role == "INSTITUTE":
         inst = Institute.query.filter_by(user_id=user_id).first()
+        if not inst or inst.approval_status != "APPROVED":
+            # Admins can always see profiles; owners can see their own profile
+            if requester_role != "ADMIN" and uid != user_id:
+                raise ApiError("This institute profile is not yet approved.", status_code=403)
+        
         if inst:
             res["full_name"] = inst.name
             res["email"] = inst.email # Use official institute email

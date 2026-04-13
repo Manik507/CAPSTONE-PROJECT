@@ -26,7 +26,23 @@ def my_rank():
     entry = Leaderboard.query.filter_by(user_id=uid).first()
     if not entry:
         return jsonify({"leaderboard": None, "message": "No leaderboard entry yet"}), 200
-    return jsonify({"leaderboard": entry.to_dict()}), 200
+    
+    sort = request.args.get("sort", "trophies").lower()
+    
+    if sort == "trophies":
+        rank = Leaderboard.query.filter(
+            (Leaderboard.trophies > entry.trophies) | 
+            ((Leaderboard.trophies == entry.trophies) & (Leaderboard.xp > entry.xp))
+        ).count() + 1
+    else:
+        rank = Leaderboard.query.filter(
+            (Leaderboard.xp > entry.xp) | 
+            ((Leaderboard.xp == entry.xp) & (Leaderboard.trophies > entry.trophies))
+        ).count() + 1
+        
+    res = entry.to_dict()
+    res["rank"] = rank
+    return jsonify({"leaderboard": res}), 200
 
 
 @leaderboard_bp.get("/stats")

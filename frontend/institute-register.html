@@ -47,7 +47,10 @@
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="Min 6 characters" required minlength="6">
+                    <div class="password-input-container">
+                        <input type="password" id="password" placeholder="Min 6 characters" required minlength="6">
+                        <button type="button" class="password-toggle" onclick="togglePassword('password', this)">👁️</button>
+                    </div>
                 </div>
 
                 <hr style="border-color: #333; margin: 1.5rem 0;">
