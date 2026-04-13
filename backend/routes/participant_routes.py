@@ -156,9 +156,6 @@ def mark_notification_read(notification_id):
     db.session.commit()
     return jsonify({"message": "Notification marked as read"}), 200
 
-
-<<<<<<< HEAD
-=======
 @participant_bp.patch("/notifications/read-all")
 @jwt_required()
 def mark_all_notifications_read():
@@ -176,7 +173,6 @@ def mark_all_notifications_read():
     return jsonify({"message": f"{unread_count} notifications marked as read"}), 200
 
 
->>>>>>> temp-fix
 @participant_bp.get("/events/<int:event_id>/updates")
 @jwt_required()
 def get_event_updates(event_id):

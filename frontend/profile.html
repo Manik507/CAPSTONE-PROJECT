@@ -3,36 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile – EventHub</title>
+    <title>My Profile - EventHub</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <nav class="navbar">
         <div class="navbar-inner">
-            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+            <a href="index.html" class="navbar-brand"><span class="logo-icon">EventHub</span></a>
             <div class="navbar-links" id="main-nav"></div>
         </div>
     </nav>
 
     <div class="container">
         <div class="page-header">
-            <h1>👤 My Profile</h1>
+            <h1>My Profile</h1>
             <p>Manage your account and view your legacy</p>
         </div>
 
         <div class="dashboard-grid" style="grid-template-columns: 1fr 1.5fr; gap: 2rem;">
-            <!-- Left: Edit Profile -->
             <div>
                 <div class="card">
                     <div class="card-body">
                         <div style="text-align: center; margin-bottom: 1.5rem;">
-                            <div style="font-size: 5rem;">👤</div>
+                            <div style="font-size: 5rem;">Profile</div>
                             <h2 id="display-name">Loading...</h2>
                             <p id="display-username" class="opacity-70">@username</p>
                             <p id="display-email" class="opacity-60" style="font-size: 0.9rem; margin-top: 5px;">email@example.com</p>
-                            <button type="button" class="btn btn-secondary btn-sm mt-2" id="edit-toggle-btn">✏️ Edit Profile</button>
+                            <button type="button" class="btn btn-secondary btn-sm mt-2" id="edit-toggle-btn">Edit Profile</button>
                         </div>
-                        
+
                         <form id="profile-form">
                             <div class="form-group">
                                 <label for="pf-full-name">Full Name</label>
@@ -53,36 +52,35 @@
                                 <input type="text" id="pf-phone" class="form-control" required maxlength="10" disabled>
                                 <small id="phone-hint" class="opacity-60">Must be 10 digits</small>
                             </div>
-                            <button type="submit" class="btn btn-primary w-full hidden" id="save-btn">💾 Save Changes</button>
+                            <button type="submit" class="btn btn-primary w-full hidden" id="save-btn">Save Changes</button>
                         </form>
                     </div>
                 </div>
             </div>
 
-            <!-- Right: Stats & History -->
             <div>
                 <div class="dashboard-grid" id="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
                     <div class="stat-card clickable" onclick="showList('followers')">
                         <div class="stat-value" id="count-followers">0</div>
-                        <div class="stat-label">👥 Followers</div>
+                        <div class="stat-label">Followers</div>
                     </div>
                     <div class="stat-card clickable" onclick="showList('following')">
                         <div class="stat-value" id="count-following">0</div>
-                        <div class="stat-label">🤝 Following</div>
+                        <div class="stat-label">Following</div>
                     </div>
                     <div class="stat-card role-participant-only">
-                        <div class="stat-value" id="stat-xp">✨ 0</div>
+                        <div class="stat-value" id="stat-xp">0</div>
                         <div class="stat-label">Total XP</div>
                     </div>
                     <div class="stat-card role-participant-only">
-                        <div class="stat-value" id="stat-trophies">🏆 0</div>
+                        <div class="stat-value" id="stat-trophies">0</div>
                         <div class="stat-label">Trophies</div>
                     </div>
                 </div>
 
                 <div class="section-panel">
                     <div class="section-panel-header">
-                        <h2 id="history-title">📜 Competition History</h2>
+                        <h2 id="history-title">Competition History</h2>
                     </div>
                     <div class="section-panel-body">
                         <div id="history-list" class="notif-list">
@@ -94,29 +92,23 @@
         </div>
     </div>
 
-    <!-- User List Modal (Followers/Following) -->
     <div id="list-modal" class="modal hidden">
         <div class="modal-content" style="max-width: 450px;">
             <div class="modal-header">
                 <h2 id="modal-title">Users</h2>
                 <button class="close-btn" onclick="closeModal()">&times;</button>
             </div>
-            <div class="modal-body" id="modal-list" style="max-height: 400px; overflow-y: auto;">
-                <!-- Items here -->
-            </div>
+            <div class="modal-body" id="modal-list" style="max-height: 400px; overflow-y: auto;"></div>
         </div>
     </div>
 
-    <!-- Entity Details Modal (for Admins viewing logs) -->
     <div id="details-modal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 700px; text-align: left;">
             <div class="section-panel-header">
                 <h2 id="details-title">Details</h2>
                 <button class="btn-close" onclick="closeDetailsModal()">&times;</button>
             </div>
-            <div class="section-panel-body" id="details-body" style="padding: 1.5rem;">
-                <!-- Dynamic content -->
-            </div>
+            <div class="section-panel-body" id="details-body" style="padding: 1.5rem;"></div>
             <div class="modal-footer" style="padding: 1rem 1.5rem; text-align: right; border-top: 1px solid var(--border-glass);">
                 <button class="btn btn-secondary" onclick="closeDetailsModal()">Close</button>
             </div>
@@ -125,11 +117,17 @@
 
     <style>
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
-            z-index: 1000; display: flex; align-items: center; justify-content: center;
-<<<<<<< HEAD
-=======
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             overflow-y: auto;
             padding: 2rem;
         }
@@ -137,14 +135,26 @@
             max-height: 90vh;
             overflow-y: auto;
             width: 100%;
->>>>>>> temp-fix
         }
-        .details-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 0.75rem; margin-top: 1rem; }
-        .details-label { font-weight: 600; opacity: 0.6; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .details-value { font-weight: 500; font-size: 0.95rem; }
-        .clickable-log { cursor: pointer; transition: transform 0.2s; border-radius: 8px; margin-bottom: 5px; }
-        .clickable-log:hover { background: rgba(59, 130, 246, 0.1) !important; transform: translateX(5px); }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .details-label {
+            font-weight: 600;
+            opacity: 0.6;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .details-value {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
     </style>
+
     <script src="js/api.js"></script>
     <script>
         if (!requireAuth()) { /* redirected */ }
@@ -153,115 +163,112 @@
             try {
                 const data = await api.get('/auth/me');
                 const u = data.user;
-                
-                document.getElementById('display-name').textContent = u.full_name;
-                document.getElementById('display-username').textContent = `@${u.username}`;
-                
-                // Stats
+
+                document.getElementById('display-name').textContent = u.full_name || 'N/A';
+                document.getElementById('display-username').textContent = `@${u.username || 'unknown'}`;
+
                 const profileData = await api.getUserProfile(u.id);
-                const p = profileData.profile;
-                document.getElementById('display-email').textContent = p.email;
-                
-                // Only update form fields if NOT currently editing (to avoid overwriting user input during polling)
+                const p = profileData.profile || {};
+
+                document.getElementById('display-email').textContent = p.email || u.email || 'N/A';
+
                 const isEditing = !document.getElementById('pf-full-name').disabled;
                 if (!isEditing) {
-                    document.getElementById('pf-full-name').value = u.full_name;
-                    document.getElementById('pf-username').value = u.username;
-                    document.getElementById('pf-email').value = u.email;
+                    document.getElementById('pf-full-name').value = u.full_name || '';
+                    document.getElementById('pf-username').value = u.username || '';
+                    document.getElementById('pf-email').value = u.email || '';
                     document.getElementById('pf-phone').value = u.phone_number || '';
                 }
 
-                document.getElementById('count-followers').textContent = p.follower_count;
-                document.getElementById('count-following').textContent = p.following_count;
-                
+                document.getElementById('count-followers').textContent = p.follower_count || 0;
+                document.getElementById('count-following').textContent = p.following_count || 0;
+
                 const isParticipant = u.role === 'PARTICIPANT';
-                const isInst = u.role === 'INSTITUTE';
-                document.querySelectorAll('.role-participant-only').forEach(el => {
+                const isInstitute = u.role === 'INSTITUTE';
+
+                document.querySelectorAll('.role-participant-only').forEach((el) => {
                     el.style.display = isParticipant ? 'block' : 'none';
                 });
-                
-                if (isParticipant) {
-                    document.getElementById('stat-xp').textContent = `✨ ${p.xp}`;
-                    document.getElementById('stat-trophies').textContent = `🏆 ${p.trophies}`;
-                }
-                
-                // Adjust grid if Institute (show only 2 stats)
-                document.getElementById('stats-grid').style.gridTemplateColumns = isParticipant ? '1fr 1fr' : '1fr 1fr';
 
-                // History Title
+                if (isParticipant) {
+                    document.getElementById('stat-xp').textContent = p.xp || 0;
+                    document.getElementById('stat-trophies').textContent = p.trophies || 0;
+                }
+
                 const historyTitle = document.getElementById('history-title');
                 if (u.role === 'INSTITUTE') {
-                    historyTitle.textContent = '🏛️ Created Events';
+                    historyTitle.textContent = 'Created Events';
                 } else if (u.role === 'ADMIN') {
-                    historyTitle.textContent = '🔐 Platform Activity Logs';
+                    historyTitle.textContent = 'Platform Activity Logs';
+                } else if (u.role === 'VOLUNTEER') {
+                    historyTitle.textContent = 'Volunteer Activity';
                 } else {
-                    historyTitle.textContent = '📜 Competition History';
+                    historyTitle.textContent = 'Competition History';
                 }
 
                 const historyContainer = document.getElementById('history-list');
                 const history = p.competition_history || [];
                 if (history.length === 0) {
-                    let msg = "No data available";
-                    let icon = '🚀';
-                    if (u.role === 'INSTITUTE') {
-                        msg = 'Still not created any events';
-                        icon = '📅';
-                    } else if (u.role === 'ADMIN') {
-                        msg = 'No activity logs recorded yet';
-                        icon = '🔍';
-                    } else {
-                        msg = "Don't wait! Start participating and gain experience! 🚀✨";
-                    }
-                    historyContainer.innerHTML = `<div class="text-center py-4"><div style="font-size:3rem; margin-bottom:1rem;">${icon}</div><div class="opacity-70">${msg}</div></div>`;
+                    let msg = 'No data available';
+                    if (u.role === 'INSTITUTE') msg = 'No events created yet';
+                    if (u.role === 'ADMIN') msg = 'No activity logs recorded yet';
+                    if (u.role === 'PARTICIPANT') msg = 'Start participating to build your history';
+                    if (u.role === 'VOLUNTEER') msg = 'No volunteer activity recorded yet';
+                    historyContainer.innerHTML = `<div class="text-center py-4"><div class="opacity-70">${msg}</div></div>`;
                 } else {
-                    historyContainer.innerHTML = history.map(h => `
+                    historyContainer.innerHTML = history.map((h) => `
                         <div class="notif-item">
                             <div class="notif-title" style="color:var(--text-primary); font-weight:600;">
-                                ${isInst ? '🗓️' : (u.role === 'ADMIN' ? '🛡️' : (h.prize ? '🏆' : '🎪'))} ${h.event_title}
+                                ${h.event_title || 'Untitled'}
                             </div>
                             <div class="notif-msg" style="margin: 0.25rem 0;">
                                 ${h.institute_description ? `<div style="font-size:0.8rem; opacity:0.7; margin-bottom: 5px;">${h.institute_description}</div>` : ''}
                                 ${isParticipant ? `
-                                    <span class="badge badge-approved">✨ +${h.rewards.xp} XP</span>
-                                    <span class="badge badge-approved" style="background:var(--accent-amber)">🏆 +${h.rewards.trophies || 0} Trophy</span>
+                                    <span class="badge badge-approved">+${h.rewards?.xp || 0} XP</span>
+                                    <span class="badge badge-approved" style="background:var(--accent-amber)">+${h.rewards?.trophies || 0} Trophy</span>
                                 ` : (u.role === 'ADMIN' ? `
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <span class="badge badge-pending">🛡️ Decision by ${h.admin_name}</span>
-<<<<<<< HEAD
-                                        <button class="btn btn-sm btn-secondary" onclick="viewTargetDetails('${h.target_type}', ${h.target_id})">🔍 View Target Details</button>
-=======
-                                        <button class="btn btn-sm btn-secondary view-details-btn" 
-                                            data-target-type="${h.target_type}" 
-                                            data-target-id="${h.target_id}"
+                                        <span class="badge badge-pending">Decision by ${h.admin_name || 'Admin'}</span>
+                                        <button
+                                            class="btn btn-sm btn-secondary view-details-btn"
+                                            data-target-type="${h.target_type || ''}"
+                                            data-target-id="${h.target_id || ''}"
                                             data-admin-decision="${escapeHtml(h.institute_description || '')}">
-                                            🔍 View Target Details
+                                            View Target Details
                                         </button>
->>>>>>> temp-fix
                                     </div>
                                 ` : '')}
                             </div>
                             <div class="notif-time">${formatDate(h.event_date)}</div>
                         </div>
                     `).join('');
-<<<<<<< HEAD
-=======
-                    
-                    // Add click listeners to view details buttons
-                    document.querySelectorAll('.view-details-btn').forEach(btn => {
+
+                    document.querySelectorAll('.view-details-btn').forEach((btn) => {
                         btn.addEventListener('click', (e) => {
                             const type = e.currentTarget.dataset.targetType;
-                            const id = parseInt(e.currentTarget.dataset.targetId);
-                            // Decode HTML entities from data attribute
-                            const decisionEncoded = e.currentTarget.dataset.adminDecision;
-                            const decision = decisionEncoded ? decisionEncoded.replace(/&#10;/g, '\n').replace(/&#13;/g, '\r').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#039;/g, "'") : '';
-                            viewTargetDetails(type, id, decision);
+                            const id = parseInt(e.currentTarget.dataset.targetId, 10);
+                            const decisionEncoded = e.currentTarget.dataset.adminDecision || '';
+                            const decision = decisionEncoded
+                                .replace(/&#10;/g, '\n')
+                                .replace(/&#13;/g, '\r')
+                                .replace(/&quot;/g, '"')
+                                .replace(/&amp;/g, '&')
+                                .replace(/&lt;/g, '<')
+                                .replace(/&gt;/g, '>')
+                                .replace(/&#039;/g, "'");
+                            if (type && id) {
+                                viewTargetDetails(type, id, decision);
+                            }
                         });
                     });
->>>>>>> temp-fix
+                }
+
+                if (!isInstitute && u.role !== 'PARTICIPANT') {
+                    document.getElementById('display-email').textContent = p.email || u.email || 'N/A';
                 }
             } catch (err) {
                 console.error('Profile load error:', err);
-                if (!silent) showToast('Failed to load profile', 'error');
+                if (!silent) showToast(err.message || 'Failed to load profile', 'error');
             }
         }
 
@@ -269,12 +276,12 @@
             e.preventDefault();
             const btn = document.getElementById('save-btn');
             const originalText = btn.textContent;
-            
+
             const fullName = document.getElementById('pf-full-name').value.trim();
             const username = document.getElementById('pf-username').value.trim();
             const phone = document.getElementById('pf-phone').value.trim();
 
-            if (phone.length !== 10 || !/^\d+$/.test(phone)) {
+            if (phone && (phone.length !== 10 || !/^\d+$/.test(phone))) {
                 showToast('Please enter a valid 10-digit phone number', 'error');
                 return;
             }
@@ -282,24 +289,25 @@
             try {
                 btn.textContent = 'Saving...';
                 btn.disabled = true;
-                
-                const res = await api.patch('/auth/update', {
+
+                await api.patch('/auth/update', {
                     full_name: fullName,
-                    username: username,
+                    username,
                     phone_number: phone
                 });
-                
+
                 showToast('Profile updated successfully!', 'success');
-                loadProfile();
                 toggleEditMode(false);
-                // Update local storage user data
+                await loadProfile();
+
                 const currentUser = api.getUser();
-                currentUser.full_name = fullName;
-                currentUser.username = username;
-                currentUser.phone_number = phone;
-                api.setAuth(api.getToken(), currentUser);
-                buildNav();
-                
+                if (currentUser) {
+                    currentUser.full_name = fullName;
+                    currentUser.username = username;
+                    currentUser.phone_number = phone;
+                    api.setAuth(api.getToken(), currentUser);
+                    buildNav();
+                }
             } catch (err) {
                 showToast(err.message || 'Update failed', 'error');
             } finally {
@@ -309,54 +317,40 @@
         });
 
         async function showList(type) {
-            const user = api.getUser();
-            const modal = document.getElementById('list-modal');
-            const title = document.getElementById('modal-title');
-            const list = document.getElementById('modal-list');
-            
-            title.textContent = type === 'followers' ? 'Followers' : 'Following';
-            list.innerHTML = '<div class="text-center py-2"><div class="spinner"></div></div>';
-            modal.classList.remove('hidden');
-            
-            // Start polling for this specific list
+            document.getElementById('modal-title').textContent = type === 'followers' ? 'Followers' : 'Following';
+            document.getElementById('modal-list').innerHTML = '<div class="text-center py-2"><div class="spinner"></div></div>';
+            document.getElementById('list-modal').classList.remove('hidden');
             startListPolling(type);
         }
 
         let listPollInterval = null;
+
         async function startListPolling(type) {
             if (listPollInterval) clearInterval(listPollInterval);
-            
+
             const fetchAndRender = async () => {
                 const user = api.getUser();
-                const list = document.getElementById('modal-list');
+                if (!user) return;
+
                 try {
                     const data = await api.get(`/social/${type}/${user.id}`);
                     const items = data[type] || [];
-                    
+                    const list = document.getElementById('modal-list');
+
                     if (items.length === 0) {
-                        const emptyMsg = type === 'followers' 
-                            ? `<div class="text-center py-4">
-                                <img src="file:///C:/Users/ADMIN/.gemini/antigravity/brain/0b3fe94d-2cbb-4529-a2c2-198927b5fd8f/no_followers_illustration_1775339888787.png" style="width:150px; margin-bottom:1rem; opacity:0.9;">
-                                <div style="font-weight:600;">No followers yet</div>
-                                <div class="opacity-70">Start connecting with friends! 🤝✨</div>
-                               </div>`
-                            : `<div class="text-center py-4">
-                                <div style="font-size:3rem; margin-bottom:1rem;">🤝</div>
-                                <div style="font-weight:600;">You are not following anyone</div>
-                                <div class="opacity-70">Start connecting with friends! 🤝✨</div>
-                               </div>`;
-                        list.innerHTML = emptyMsg;
-                    } else {
-                        list.innerHTML = items.map(u => `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <div>
-                                    <div style="font-weight: 600;">👤 ${u.full_name}</div>
-                                    <div class="opacity-70" style="font-size: 0.85rem;">@${u.username} ${u.role === 'INSTITUTE' ? '🏛️' : ''}</div>
-                                </div>
-                                <a href="index.html?search=${u.username}" class="btn btn-secondary btn-sm">View Profile 🔍</a>
-                            </div>
-                        `).join('');
+                        list.innerHTML = `<div class="text-center py-4"><div style="font-weight:600;">No ${type} yet</div></div>`;
+                        return;
                     }
+
+                    list.innerHTML = items.map((u) => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div>
+                                <div style="font-weight: 600;">${u.full_name}</div>
+                                <div class="opacity-70" style="font-size: 0.85rem;">@${u.username}</div>
+                            </div>
+                            <a href="index.html?search=${u.username}" class="btn btn-secondary btn-sm">View Profile</a>
+                        </div>
+                    `).join('');
                 } catch (err) {
                     console.error('List refresh failed', err);
                 }
@@ -366,27 +360,24 @@
             listPollInterval = setInterval(fetchAndRender, 5000);
         }
 
-        // Edit Mode Toggle
         let editMode = false;
         const editToggleBtn = document.getElementById('edit-toggle-btn');
         const saveBtn = document.getElementById('save-btn');
         const inputs = ['pf-full-name', 'pf-username', 'pf-phone'];
 
         function toggleEditMode(force) {
-            editMode = (force !== undefined) ? force : !editMode;
-            editToggleBtn.textContent = editMode ? '❌ Cancel' : '✏️ Edit Profile';
+            editMode = force !== undefined ? force : !editMode;
+            editToggleBtn.textContent = editMode ? 'Cancel' : 'Edit Profile';
             editToggleBtn.className = `btn btn-${editMode ? 'danger' : 'secondary'} btn-sm mt-2`;
             saveBtn.classList.toggle('hidden', !editMode);
-            
-            inputs.forEach(id => {
+
+            inputs.forEach((id) => {
                 document.getElementById(id).disabled = !editMode;
             });
         }
 
         editToggleBtn.addEventListener('click', () => toggleEditMode());
 
-<<<<<<< HEAD
-=======
         function escapeHtml(text) {
             if (!text) return '';
             return text
@@ -399,87 +390,44 @@
                 .replace(/\r/g, '&#13;');
         }
 
->>>>>>> temp-fix
         function closeModal() {
             document.getElementById('list-modal').classList.add('hidden');
             if (listPollInterval) {
                 clearInterval(listPollInterval);
                 listPollInterval = null;
             }
-            // Refresh counts on close just in case
             loadProfile(true);
         }
 
-<<<<<<< HEAD
-        async function viewTargetDetails(type, id) {
-            try {
-                let data;
-                if (type === 'INSTITUTE') {
-                    const res = await api.get(`/institutes/${id}`);
-                    data = res.institute;
-                    showDetails('institute', id, data);
-                } else {
-                    const res = await api.get(`/events/${id}`);
-                    data = res.event;
-                    showDetails('event', id, data);
-                }
-            } catch (err) {
-=======
         async function viewTargetDetails(type, id, adminDecision = null) {
             try {
-                let data;
-                let endpoint;
-                if (type === 'INSTITUTE') {
-                    endpoint = `/institutes/${id}`;
-                } else {
-                    endpoint = `/events/${id}`;
-                }
-                
+                const endpoint = type === 'INSTITUTE' ? `/institutes/${id}` : `/events/${id}`;
                 const res = await api.get(endpoint);
-                
-                if (type === 'INSTITUTE') {
-                    data = res.institute;
-                } else {
-                    data = res.event;
-                }
-                
+                const data = type === 'INSTITUTE' ? res.institute : res.event;
+
                 if (!data) {
                     showToast('No data found for this item', 'error');
                     return;
                 }
-                
+
                 showDetails(type.toLowerCase(), id, data, adminDecision);
             } catch (err) {
                 console.error('Error loading target details:', err);
->>>>>>> temp-fix
                 showToast('Target entity might have been deleted or not found.', 'error');
             }
         }
 
-        // Details Modal Logic
-<<<<<<< HEAD
-        function showDetails(type, id, data) {
-            const modal = document.getElementById('details-modal');
-            const title = document.getElementById('details-title');
-            const body = document.getElementById('details-body');
-=======
         function showDetails(type, id, data, adminDecision = null) {
             const modal = document.getElementById('details-modal');
             const title = document.getElementById('details-title');
             const body = document.getElementById('details-body');
-            
-            if (!modal || !title || !body) {
-                return;
-            }
-            
->>>>>>> temp-fix
-            const val = (v) => (v === null || v === undefined || v === "" || v === "null") ? '-' : v;
+            if (!modal || !title || !body) return;
+
+            const val = (v) => (v === null || v === undefined || v === '' || v === 'null') ? '-' : v;
 
             if (type === 'institute') {
-                title.innerHTML = `🏛️ Institute: ${val(data.name)}`;
+                title.innerHTML = `Institute: ${val(data.name)}`;
                 body.innerHTML = `
-<<<<<<< HEAD
-=======
                     ${adminDecision ? `
                         <div style="margin-bottom: 1.5rem;">
                             <div class="details-label" style="margin-bottom: 0.5rem;">Admin Decision</div>
@@ -488,7 +436,6 @@
                             </div>
                         </div>
                     ` : ''}
->>>>>>> temp-fix
                     <div class="details-grid">
                         <div class="details-label">ID</div><div class="details-value">#${val(data.id)}</div>
                         <div class="details-label">Name</div><div class="details-value">${val(data.name)}</div>
@@ -504,10 +451,8 @@
                     </div>
                 `;
             } else if (type === 'event') {
-                title.innerHTML = `📅 Event: ${val(data.title)}`;
+                title.innerHTML = `Event: ${val(data.title)}`;
                 body.innerHTML = `
-<<<<<<< HEAD
-=======
                     ${adminDecision ? `
                         <div style="margin-bottom: 1.5rem;">
                             <div class="details-label" style="margin-bottom: 0.5rem;">Admin Decision</div>
@@ -516,7 +461,6 @@
                             </div>
                         </div>
                     ` : ''}
->>>>>>> temp-fix
                     ${data.image_url ? `<img src="${data.image_url}" style="width: 100%; border-radius: var(--radius-md); max-height: 300px; object-fit: contain; background: #000; border: 1px solid var(--border-glass); margin-bottom: 1.5rem;">` : ''}
                     <div class="details-grid">
                         <div class="details-label">ID</div><div class="details-value">#${val(data.id)}</div>
@@ -538,6 +482,7 @@
                     </div>
                 `;
             }
+
             modal.classList.remove('hidden');
         }
 
@@ -547,7 +492,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             loadProfile();
-            // Polling for real-time sync (5 seconds) - silent in background
             setInterval(() => loadProfile(true), 5000);
         });
     </script>

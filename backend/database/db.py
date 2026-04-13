@@ -1,6 +1,12 @@
-<<<<<<< HEAD
+import os
+
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
+
+# SQLAlchemy's optional C extensions trigger a Windows WMI lookup on some
+# Python 3.14 installs, which can hang during import. Use the pure-Python path.
+os.environ.setdefault("DISABLE_SQLALCHEMY_CEXT_RUNTIME", "1")
+
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -15,18 +21,3 @@ def init_extensions(app):
     db.init_app(app)
     bcrypt.init_app(app)
     jwt.init_app(app)
-
-=======
-from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager
-from flask_bcrypt import Bcrypt
-
-db = SQLAlchemy()
-jwt = JWTManager()
-bcrypt = Bcrypt()
-
-def init_extensions(app):
-    db.init_app(app)
-    jwt.init_app(app)
-    bcrypt.init_app(app)
->>>>>>> temp-fix

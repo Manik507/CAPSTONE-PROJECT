@@ -132,12 +132,6 @@
         }
 
         async function markAllAsRead() {
-<<<<<<< HEAD
-            // Simple approach: mark visible unread as read
-            const container = document.getElementById('notif-list');
-            const unreadItems = container.querySelectorAll('.notif-item.unread');
-            loadNotifications();
-=======
             try {
                 await api.markAllRead();
                 showToast('All notifications cleared', 'success');
@@ -146,7 +140,6 @@
                 console.error('Failed to mark all as read', err);
                 showToast('Failed to clear notifications', 'error');
             }
->>>>>>> temp-fix
         }
 
         async function loadRewardHistory() {
@@ -235,6 +228,42 @@
         }
 
 
+
+        let searchTimeout;
+        const searchDropdown = document.createElement('div');
+        searchDropdown.className = 'search-dropdown hidden';
+        
+        async function handleSearch(e) {
+            const query = e.target.value.trim();
+            if (query.length < 2) {
+                searchDropdown.classList.add('hidden');
+                return;
+            }
+
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const data = await api.searchUsers(query);
+                    const users = data.users || [];
+                    
+                    if (users.length === 0) {
+                        searchDropdown.innerHTML = '<div class="search-item">No results found</div>';
+                    } else {
+                        searchDropdown.innerHTML = users.map(u => `
+                            <div class="search-item" onclick="viewProfile(${u.id})">
+                                <div class="search-item-info">
+                                    <div class="search-item-name">${u.full_name}</div>
+                                    <div class="search-item-handle">@${u.username} ${u.role === 'INSTITUTE' ? '🏛️' : ''}</div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                    searchDropdown.classList.remove('hidden');
+                } catch (err) {
+                    console.error(err);
+                }
+            }, 300);
+        }
 
         async function toggleFollow(userId, currentlyFollowing) {
             try {

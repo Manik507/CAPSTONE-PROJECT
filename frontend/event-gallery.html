@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Gallery - EventHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .gallery-shell {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 32%),
+                radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.14), transparent 30%),
+                linear-gradient(180deg, rgba(8, 15, 28, 0.98), rgba(12, 18, 32, 1));
+        }
+        .gallery-hero {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 1rem;
+            text-align: center;
+        }
+        .gallery-hero h1 {
+            font-size: clamp(2rem, 5vw, 4rem);
+            margin-bottom: 0.75rem;
+        }
+        .gallery-hero p {
+            color: var(--text-secondary);
+            max-width: 720px;
+            margin: 0 auto 1.5rem;
+        }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding-bottom: 3rem;
+        }
+        .gallery-card {
+            overflow: hidden;
+            border: 1px solid var(--border-glass);
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(18px);
+            transition: transform 0.25s ease, border-color 0.25s ease;
+        }
+        .gallery-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(59, 130, 246, 0.55);
+        }
+        .gallery-image {
+            height: 260px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .gallery-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .gallery-copy {
+            padding: 1rem 1rem 1.2rem;
+        }
+        .gallery-copy h3 {
+            margin-bottom: 0.5rem;
+        }
+        .gallery-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.8rem;
+        }
+        .gallery-copy p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        .gallery-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        @media (max-width: 640px) {
+            .gallery-image {
+                height: 220px;
+            }
+            .gallery-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body class="gallery-shell">
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="index.html" class="navbar-brand"><span class="logo-icon">EventHub</span></a>
+            <div class="navbar-links" id="main-nav"></div>
+        </div>
+    </nav>
+
+    <section class="gallery-hero">
+        <h1>Published Event Gallery</h1>
+        <p>Browse event posters and banners from approved events in one separate public window.</p>
+        <div class="btn-group" style="justify-content:center;">
+            <a href="index.html" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </section>
+
+    <div class="container">
+        <div id="gallery-loading" class="text-center"><div class="spinner"></div></div>
+        <div id="gallery-grid" class="gallery-grid"></div>
+        <div id="gallery-empty" class="empty-state hidden">
+            <div class="empty-icon">Gallery</div>
+            <h3>No published event images yet</h3>
+            <p>Once approved events include images, they will appear here.</p>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        async function loadGallery() {
+            const loading = document.getElementById('gallery-loading');
+            const grid = document.getElementById('gallery-grid');
+            const empty = document.getElementById('gallery-empty');
+
+            try {
+                const data = await api.getPublishedEventImages();
+                const events = (data.events || []).filter((event) => event.image_url);
+
+                loading.classList.add('hidden');
+
+                if (events.length === 0) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+
+                grid.innerHTML = events.map((event) => `
+                    <article class="card gallery-card">
+                        <div class="gallery-image">
+                            <img src="${event.image_url}" alt="${event.title}">
+                        </div>
+                        <div class="gallery-copy">
+                            <h3>${event.title}</h3>
+                            <div class="gallery-meta">
+                                <span>${formatDate(event.date)}</span>
+                                <span>${event.institute_name || 'Unknown Institute'}</span>
+                            </div>
+                            <p>${event.description || 'No description available.'}</p>
+                            <div class="gallery-actions">
+                                <span class="badge badge-approved">Published</span>
+                                <a href="event.html?id=${event.id}" class="btn btn-primary btn-sm">Open Event</a>
+                            </div>
+                        </div>
+                    </article>
+                `).join('');
+            } catch (err) {
+                loading.classList.add('hidden');
+                empty.classList.remove('hidden');
+                if (err && err.message) {
+                    showToast(err.message, 'error');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadGallery);
+    </script>
+</body>
+</html>
