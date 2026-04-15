@@ -35,3 +35,9 @@ class Config:
 
     # Allow admin registration via API (set to "true" in .env to enable)
     ALLOW_ADMIN_REGISTRATION = os.getenv("ALLOW_ADMIN_REGISTRATION", "true").lower() == "true"
+
+    # Appwrite Configuration
+    APPWRITE_ENDPOINT = os.getenv("APPWRITE_ENDPOINT", "https://cloud.appwrite.io/v1")
+    APPWRITE_PROJECT_ID = os.getenv("APPWRITE_PROJECT_ID", "")
+    APPWRITE_API_KEY = os.getenv("APPWRITE_API_KEY", "")
+    APPWRITE_BUCKET_ID = os.getenv("APPWRITE_BUCKET_ID", "")

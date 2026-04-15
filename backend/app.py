@@ -37,6 +37,8 @@ def create_app():
     from routes.leaderboard_routes import leaderboard_bp
     from routes.result_routes import results_bp
     from routes.social_routes import social_bp
+    from routes.round_routes import rounds_bp
+    from routes.download_routes import download_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(institute_bp)
@@ -47,6 +49,8 @@ def create_app():
     app.register_blueprint(leaderboard_bp)
     app.register_blueprint(results_bp)
     app.register_blueprint(social_bp)
+    app.register_blueprint(rounds_bp)
+    app.register_blueprint(download_bp)
 
     # Serve frontend static files
     frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")

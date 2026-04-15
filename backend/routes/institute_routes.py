@@ -116,6 +116,9 @@ def post_event_update(event_id):
         institute = Institute.query.filter_by(user_id=uid).first()
         if not institute or event.institute_id != institute.id:
             raise ApiError("Not authorized to post updates for this event", status_code=403)
+        # Event completion guard for INSTITUTE (volunteers already checked above)
+        if event.end_date and event.end_date.replace(tzinfo=timezone.utc) < now:
+            raise ApiError("Cannot post updates for a completed event", status_code=403)
 
     data = request.get_json(silent=True) or {}
     message = (data.get("message") or "").strip()
@@ -145,33 +148,42 @@ def post_event_update(event_id):
 @jwt_required()
 @role_required("INSTITUTE", "VOLUNTEER")
 def qualify_participants(event_id):
+    """
+    Qualify participants for the next round AND permanently lock the
+    previous round.  Implements first-come-first-lock: whoever submits
+    first (institute or volunteer) locks the round for everyone.
+
+    Body: { "target_round": <int>, "user_ids": [<int>, ...] }
+    target_round  = the round participants are being promoted TO (min 2).
+    The round being locked = target_round - 1.
+    """
     from models.event import Event
     from models.participant import Participant
     from models.notification import Notification
+    from models.round_lock import RoundLock
+    from utils.guards import check_event_not_completed
 
     uid = int(current_user_id())
     event = Event.query.get(event_id)
     if not event:
         raise ApiError("Event not found", status_code=404)
 
-    # Check ownership
-    from datetime import datetime, timezone
-    now = datetime.now(timezone.utc)
+    # --- Authorization ---
     user = User.query.get(uid)
-    
     if user.role == "VOLUNTEER":
         from models.volunteer import Volunteer
         v = Volunteer.query.filter_by(user_id=uid, event_id=event_id).first()
         if not v:
             raise ApiError("Not authorized for this event", status_code=403)
-        if event.end_date and event.end_date.replace(tzinfo=timezone.utc) < now:
-            raise ApiError("Cannot qualify participants for a completed event", status_code=403)
-
     elif user.role == "INSTITUTE":
         institute = Institute.query.filter_by(user_id=uid).first()
         if not institute or event.institute_id != institute.id:
             raise ApiError("Not authorized", status_code=403)
 
+    # --- Event completion guard (both roles) ---
+    check_event_not_completed(event)
+
+    # --- Parse & validate input ---
     data = request.get_json(silent=True) or {}
     user_ids = data.get("user_ids", [])
     target_round = data.get("target_round")
@@ -184,10 +196,36 @@ def qualify_participants(event_id):
     except (ValueError, TypeError):
         raise ApiError("target_round must be an integer", status_code=400)
 
+    if target_round < 2:
+        raise ApiError(
+            "target_round must be at least 2. All PAID participants are automatically in Round 1.",
+            status_code=400
+        )
     if target_round > event.num_rounds:
         raise ApiError(f"Event only has {event.num_rounds} rounds", status_code=400)
 
-    # Filter to only PAID participants among the provided user IDs
+    # --- Round Locking Logic ---
+    lock_round = target_round - 1  # the round whose results we are finalizing
+
+    # 1. Check: this round must NOT already be locked
+    existing_lock = RoundLock.query.filter_by(event_id=event_id, round_number=lock_round).first()
+    if existing_lock:
+        locker_name = existing_lock.locker.full_name if existing_lock.locker else "someone"
+        raise ApiError(
+            f"Round {lock_round} is already locked by {locker_name}. "
+            f"Selections cannot be modified.",
+            status_code=409
+        )
+
+    # 2. Check: all prior rounds must be locked (sequential enforcement)
+    for prev in range(1, lock_round):
+        if not RoundLock.query.filter_by(event_id=event_id, round_number=prev).first():
+            raise ApiError(
+                f"Round {prev} must be locked before you can lock Round {lock_round}.",
+                status_code=400
+            )
+
+    # --- Qualify selected participants ---
     participants = Participant.query.filter(
         Participant.event_id == event_id,
         Participant.user_id.in_(user_ids),
@@ -198,7 +236,7 @@ def qualify_participants(event_id):
     for p in participants:
         p.qualified_round = target_round
         qualified_count += 1
-        
+
         # Notify the user
         notif = Notification(
             user_id=p.user_id,
@@ -207,11 +245,20 @@ def qualify_participants(event_id):
             type="ROUND_QUALIFIED"
         )
         db.session.add(notif)
-    
+
+    # --- Create the permanent round lock (first-come-first-lock) ---
+    round_lock = RoundLock(
+        event_id=event_id,
+        round_number=lock_round,
+        locked_by=uid
+    )
+    db.session.add(round_lock)
+
     db.session.commit()
     return jsonify({
-        "message": f"Successfully qualified {qualified_count} participants for Round {target_round}",
-        "qualified_count": qualified_count
+        "message": f"Round {lock_round} locked. {qualified_count} participants qualified for Round {target_round}.",
+        "qualified_count": qualified_count,
+        "round_locked": lock_round
     }), 200
 
 @institute_bp.post("/volunteers/create")
@@ -240,6 +287,10 @@ def create_volunteer():
     event = Event.query.get(event_id)
     if not event or event.institute_id != institute.id:
         raise ApiError("Invalid event ID or unauthorized", status_code=403)
+
+    # Event completion guard — cannot assign volunteers to ended events
+    from utils.guards import check_event_not_completed
+    check_event_not_completed(event)
 
     # Check if user exists
     user = User.query.filter_by(email=email).first()

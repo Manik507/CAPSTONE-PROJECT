@@ -5,3 +5,4 @@ flask_bcrypt
 psycopg2-binary
 python-dotenv
 flask_cors
+appwrite

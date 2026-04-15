@@ -23,11 +23,22 @@ def get_event_results(event_id):
 @jwt_required()
 @role_required("INSTITUTE", "ADMIN")
 def set_event_results(event_id):
-    """Institute: Set the winners for an event (3-Step Workflow Finalization)."""
+    """Institute: Set the winners for an event (3-Step Workflow Finalization).
+    
+    Once results are declared, they are permanently locked and cannot be changed.
+    """
     uid = int(current_user_id())
     event = Event.query.get(event_id)
     if not event:
         raise ApiError("Event not found", status_code=404)
+
+    # --- Results immutability check ---
+    if event.results_locked:
+        raise ApiError(
+            "Results for this event have already been declared and are permanently locked. "
+            "No changes are allowed.",
+            status_code=409
+        )
 
     # Check ownership
     user = User.query.get(uid)
@@ -41,7 +52,7 @@ def set_event_results(event_id):
     if not isinstance(winners, list):
         raise ApiError("Winners list is required", status_code=400)
 
-    # Clear previous results for this event
+    # Clear any draft results (safety net — normally none exist since we lock after first declaration)
     EventResult.query.filter_by(event_id=event_id).delete()
 
     # Create new results
@@ -68,5 +79,12 @@ def set_event_results(event_id):
     from services.reward_service import award_finalization_rewards
     award_finalization_rewards(event_id, winner_uids)
 
+    # --- Lock results permanently ---
+    event.results_locked = True
+
     db.session.commit()
-    return jsonify({"message": "Event results finalized successfully", "results": [r.to_dict() for r in EventResult.query.filter_by(event_id=event_id).all()]}), 200
+    return jsonify({
+        "message": "Event results finalized and permanently locked.",
+        "results_locked": True,
+        "results": [r.to_dict() for r in EventResult.query.filter_by(event_id=event_id).all()]
+    }), 200

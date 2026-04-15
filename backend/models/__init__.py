@@ -16,3 +16,4 @@ from models.reward_history import RewardHistory  # noqa: F401
 from models.follow import Follow  # noqa: F401
 from models.activity_log import ActivityLog  # noqa: F401
 from models.volunteer import Volunteer  # noqa: F401
+from models.round_lock import RoundLock  # noqa: F401

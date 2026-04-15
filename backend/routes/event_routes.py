@@ -82,14 +82,15 @@ def create_event():
     if "image" in request.files:
         file = request.files["image"]
         if file and file.filename:
-            import os
-            import uuid
-            from flask import current_app
-            ext = file.filename.rsplit(".", 1)[1].lower() if "." in file.filename else "png"
-            filename = f"{uuid.uuid4().hex}.{ext}"
-            file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], filename)
-            file.save(file_path)
-            event.image_url = f"/uploads/{filename}"
+            from services.appwrite_service import upload_image_to_appwrite
+            event.image_url = upload_image_to_appwrite(file)
+            
+    # Handle QR Code Upload
+    if "qr_code" in request.files:
+        qr_file = request.files["qr_code"]
+        if qr_file and qr_file.filename:
+            from services.appwrite_service import upload_image_to_appwrite
+            event.qr_code_url = upload_image_to_appwrite(qr_file)
     
     db.session.add(event)
     db.session.flush()  # Populate event.id from DB
@@ -107,8 +108,18 @@ def create_event():
 
 @events_bp.get("")
 def list_events():
-    """List all approved events."""
-    events = Event.query.filter_by(approval_status="APPROVED").order_by(Event.date.asc()).all()
+    """List all approved events. Completed events excluded by default.
+    Use ?include_completed=true to include them (preview mode)."""
+    from datetime import datetime, timezone
+
+    query = Event.query.filter_by(approval_status="APPROVED")
+
+    include_completed = request.args.get("include_completed", "false").lower() == "true"
+    if not include_completed:
+        now = datetime.now(timezone.utc)
+        query = query.filter(Event.end_date > now)
+
+    events = query.order_by(Event.date.asc()).all()
     return jsonify({"events": [e.to_dict() for e in events]}), 200
 
 

@@ -48,7 +48,19 @@ def login():
             raise ApiError("Invalid credentials", status_code=401, error="unauthorized")
             
     token = create_access_token_for_user(user)
-    return jsonify({"user": user.to_dict(), "access_token": token}), 200
+    response_data = {"user": user.to_dict(), "access_token": token}
+
+    # Include institute status for INSTITUTE users
+    if user.role == "INSTITUTE":
+        from models.institute import Institute
+        institute = Institute.query.filter_by(user_id=user.id).first()
+        if institute:
+            response_data["institute_status"] = institute.approval_status
+            response_data["institute"] = institute.to_dict()
+        else:
+            response_data["institute_status"] = "NO_APPLICATION"
+
+    return jsonify(response_data), 200
 
 
 @auth_bp.get("/me")

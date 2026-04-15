@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from sqlalchemy.exc import IntegrityError
 
@@ -26,6 +26,10 @@ def register_for_event(event_id):
     if event.approval_status != "APPROVED":
         raise ApiError("Event is not approved yet", status_code=403)
 
+    # Event completion guard — cannot register for ended events
+    from utils.guards import check_event_not_completed
+    check_event_not_completed(event)
+
     existing = Participant.query.filter_by(user_id=uid, event_id=event_id).first()
     if existing:
         return jsonify({"participant": existing.to_dict(), "message": "Already registered"}), 200
@@ -34,8 +38,39 @@ def register_for_event(event_id):
     import random
     import string
     reg_id = f"REG-{event_id}-{uid}-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-    
-    participant = Participant(user_id=uid, event_id=event_id, registration_id=reg_id)
+
+    # Read payment info from form data or JSON
+    if request.content_type and 'multipart' in request.content_type:
+        payment_type = (request.form.get("payment_type") or "OFFLINE").strip().upper()
+        transaction_id = (request.form.get("transaction_id") or "").strip() or None
+    else:
+        data = request.get_json(silent=True) or {}
+        payment_type = (data.get("payment_type") or "OFFLINE").strip().upper()
+        transaction_id = (data.get("transaction_id") or "").strip() or None
+
+    if payment_type not in ("ONLINE", "OFFLINE"):
+        payment_type = "OFFLINE"
+
+    participant = Participant(
+        user_id=uid,
+        event_id=event_id,
+        registration_id=reg_id,
+        payment_type=payment_type,
+        transaction_id=transaction_id,
+    )
+
+    # Handle Receipt Upload
+    if "receipt_image" in request.files:
+        receipt_file = request.files["receipt_image"]
+        if receipt_file and receipt_file.filename:
+            from services.appwrite_service import upload_image_to_appwrite
+            participant.receipt_url = upload_image_to_appwrite(receipt_file)
+
+    # Set initial payment status based on payment type
+    if payment_type == "ONLINE" and (participant.receipt_url or transaction_id):
+        participant.payment_status = "PENDING_VERIFICATION"
+    # OFFLINE stays as UNPAID (default)
+
     db.session.add(participant)
     try:
         db.session.commit()
@@ -108,6 +143,11 @@ def toggle_payment(participant_id):
         institute = Institute.query.filter_by(user_id=uid).first()
         if not institute or (participant.event and participant.event.institute_id != institute.id):
             raise ApiError("Not authorized to manage this participant", status_code=403)
+        # Event completion guard for INSTITUTE
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        if participant.event and participant.event.end_date and participant.event.end_date.replace(tzinfo=timezone.utc) < now:
+            raise ApiError("Cannot modify participants of a completed event", status_code=403)
             
     elif user.role == "VOLUNTEER":
         from models.volunteer import Volunteer
@@ -119,7 +159,11 @@ def toggle_payment(participant_id):
         if participant.event and participant.event.end_date and participant.event.end_date.replace(tzinfo=timezone.utc) < now:
             raise ApiError("Cannot modify participants of a completed event", status_code=403)
 
-    new_status = "PAID" if participant.payment_status == "UNPAID" else "UNPAID"
+    # UNPAID or PENDING_VERIFICATION -> PAID (verify/confirm), PAID -> UNPAID (revert)
+    if participant.payment_status in ("UNPAID", "PENDING_VERIFICATION"):
+        new_status = "PAID"
+    else:
+        new_status = "UNPAID"
     participant.payment_status = new_status
     db.session.commit()
     

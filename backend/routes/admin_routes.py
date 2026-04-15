@@ -58,6 +58,16 @@ def approve_institute(institute_id):
         details=reason
     )
     db.session.add(log)
+
+    # Notify the institute about their approval/rejection
+    from models.notification import Notification
+    notif = Notification(
+        user_id=institute.user_id,
+        title=f"Institute {action.title()}: {institute.name}",
+        message=reason,
+        type=f"INSTITUTE_{action}"
+    )
+    db.session.add(notif)
     
     db.session.commit()
     return jsonify({"institute": institute.to_dict(), "message": f"Institute {action.lower()} successfully"}), 200
@@ -101,9 +111,19 @@ def approve_event(event_id):
     )
     db.session.add(log)
 
+    from models.user import User
+    from models.notification import Notification
+
+    # Notify the institute that owns this event
+    inst_notif = Notification(
+        user_id=event.institute.user_id,
+        title=f"Event {action.title()}: {event.title}",
+        message=reason,
+        type=f"EVENT_{action}"
+    )
+    db.session.add(inst_notif)
+
     if action == "APPROVED":
-        from models.user import User
-        from models.notification import Notification
         participants = User.query.filter_by(role="PARTICIPANT").all()
         for p in participants:
             notification = Notification(
