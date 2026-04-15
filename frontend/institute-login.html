@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Institute Login – EventHub</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         .institute-theme {
             background: linear-gradient(135deg, #1e1e2f 0%, #151520 100%);
@@ -15,14 +16,14 @@
 <body>
     <nav class="navbar">
         <div class="navbar-inner">
-            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+            <a href="index.html" class="navbar-brand"><span class="logo-icon"><i data-lucide="crosshair"></i></span> EventHub</a>
             <div class="navbar-links" id="main-nav"></div>
         </div>
     </nav>
 
     <div class="form-container" style="margin-top: 4rem;">
         <div class="form-card institute-theme">
-            <h2 style="color: #4a90e2;">🏛️ Institute Portal Login</h2>
+            <h2 style="color: #4a90e2;"><i data-lucide="building-2" style="width:24px;height:24px;"></i> Institute Portal Login</h2>
             <p class="subtitle">Access your Organizer Dashboard</p>
 
             <div id="login-alert"></div>
@@ -36,10 +37,10 @@
                     <label for="password">Password</label>
                     <div class="password-input-container">
                         <input type="password" id="password" placeholder="••••••••" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword('password', this)">👁️</button>
+                        <button type="button" class="password-toggle" onclick="togglePassword('password', this)"><i data-lucide="eye" style="width:18px;height:18px;"></i></button>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary w-full btn-lg" id="login-btn" style="background: #4a90e2;">🔒 Login</button>
+                <button type="submit" class="btn btn-primary w-full btn-lg" id="login-btn" style="background: #4a90e2;"><i data-lucide="lock" style="width:16px;height:16px;"></i> Login</button>
             </form>
 
             <div class="form-footer mt-2">
@@ -79,11 +80,13 @@
 
             } catch (err) {
                 document.getElementById('login-alert').innerHTML =
-                    `<div class="alert alert-error">❌ ${err.message || 'Login failed'}</div>`;
+                    `<div class="alert alert-error"><i data-lucide="x-circle" style="width:16px;height:16px;"></i> ${err.message || 'Login failed'}</div>`;
                 btn.disabled = false;
-                btn.textContent = '🔒 Login';
+                btn.innerHTML = '<i data-lucide="lock" style="width:16px;height:16px;"></i> Login';
+                refreshIcons();
             }
         });
     </script>
+<script>document.addEventListener('DOMContentLoaded', () => { refreshIcons(); });</script>
 </body>
 </html>

@@ -6,6 +6,7 @@
     <meta name="description" content="EventHub Global Leaderboard – Top performers ranked by trophies and XP.">
     <title>Leaderboard – EventHub</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         /* Tab Styles */
         .lb-tabs {
@@ -44,14 +45,14 @@
 <body>
     <nav class="navbar">
         <div class="navbar-inner">
-            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+            <a href="index.html" class="navbar-brand"><span class="logo-icon"><i data-lucide="crosshair"></i></span> EventHub</a>
             <div class="navbar-links" id="main-nav"></div>
         </div>
     </nav>
 
     <div class="container">
         <div class="page-header">
-            <h1>🏆 Global Leaderboard</h1>
+            <h1><i data-lucide="trophy" style="width:32px;height:32px;"></i> Global Leaderboard</h1>
             <p>Top performers across all events and competitions</p>
         </div>
 
@@ -65,8 +66,8 @@
                         <div style="color:var(--text-muted);font-size:0.9rem;" id="my-rank-details">Login to see your rank</div>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:1.4rem;font-weight:800;" id="my-rank-xp">✨ 0 XP</div>
-                        <div style="font-size:1rem;color:var(--accent-amber);" id="my-rank-trophies">🏆 0</div>
+                        <div style="font-size:1.4rem;font-weight:800;" id="my-rank-xp"><i data-lucide="sparkles" style="width:18px;height:18px;"></i> 0 XP</div>
+                        <div style="font-size:1rem;color:var(--accent-amber);" id="my-rank-trophies"><i data-lucide="trophy" style="width:16px;height:16px;"></i> 0</div>
                     </div>
                 </div>
             </div>
@@ -74,8 +75,8 @@
 
         <!-- Tabs -->
         <div class="lb-tabs">
-            <button class="lb-tab active" id="tab-trophies" onclick="switchTab('trophies')">🏆 Trophies</button>
-            <button class="lb-tab" id="tab-xp" onclick="switchTab('xp')">⚡ XP Points</button>
+            <button class="lb-tab active" id="tab-trophies" onclick="switchTab('trophies')"><i data-lucide="trophy"></i> Trophies</button>
+            <button class="lb-tab" id="tab-xp" onclick="switchTab('xp')"><i data-lucide="zap"></i> XP Points</button>
         </div>
 
         <div id="lb-loading" class="text-center"><div class="spinner"></div></div>
@@ -85,7 +86,7 @@
         </div>
 
         <div id="lb-empty" class="empty-state hidden">
-            <div class="empty-icon">🏆</div>
+            <div class="empty-icon"><i data-lucide="trophy" style="width:64px;height:64px;"></i></div>
             <h3>No Entries Yet</h3>
             <p>Participate in events to appear on the leaderboard!</p>
         </div>
@@ -131,12 +132,12 @@
 
                     // Highlight the primary sort metric
                     const primaryStat = currentSort === 'trophies'
-                        ? `<div class="leaderboard-trophies" style="font-size:1.1rem;font-weight:800;">🏆 <span>${entry.trophies}</span></div>`
-                        : `<div class="leaderboard-xp" style="font-size:1.1rem;font-weight:800;">✨ <span>${entry.xp}</span> XP</div>`;
+                        ? `<div class="leaderboard-trophies" style="font-size:1.1rem;font-weight:800;">${icon('trophy',16)} <span>${entry.trophies}</span></div>`
+                        : `<div class="leaderboard-xp" style="font-size:1.1rem;font-weight:800;">${icon('sparkles',16)} <span>${entry.xp}</span> XP</div>`;
 
                     const secondaryStat = currentSort === 'trophies'
-                        ? `<div class="leaderboard-xp" style="font-size:0.85rem;opacity:0.7;">✨ <span>${entry.xp}</span> XP</div>`
-                        : `<div class="leaderboard-trophies" style="font-size:0.85rem;opacity:0.7;">🏆 <span>${entry.trophies}</span></div>`;
+                        ? `<div class="leaderboard-xp" style="font-size:0.85rem;opacity:0.7;">${icon('sparkles',14)} <span>${entry.xp}</span> XP</div>`
+                        : `<div class="leaderboard-trophies" style="font-size:0.85rem;opacity:0.7;">${icon('trophy',14)} <span>${entry.trophies}</span></div>`;
 
                     li.innerHTML = `
                         <div class="leaderboard-rank ${rankClass}">${rank}</div>
@@ -167,9 +168,10 @@
                     const lb = data.leaderboard;
                     document.getElementById('my-rank-section').classList.remove('hidden');
                     document.getElementById('my-rank-number').textContent = `#${lb.rank || '-'}`;
-                    document.getElementById('my-rank-details').textContent = `🏆 ${lb.trophies} trophies • ✨ ${lb.xp} XP`;
-                    document.getElementById('my-rank-xp').textContent = `✨ ${lb.xp} XP`;
-                    document.getElementById('my-rank-trophies').textContent = `🏆 ${lb.trophies}`;
+                    document.getElementById('my-rank-details').innerHTML = `${icon('trophy',14)} ${lb.trophies} trophies • ${icon('sparkles',14)} ${lb.xp} XP`;
+                    document.getElementById('my-rank-xp').innerHTML = `${icon('sparkles',18)} ${lb.xp} XP`;
+                    document.getElementById('my-rank-trophies').innerHTML = `${icon('trophy',16)} ${lb.trophies}`;
+                    refreshIcons();
                 }
             } catch (err) {}
         }
@@ -209,7 +211,7 @@
             try {
                 if (currentlyFollowing) await api.unfollowUser(userId);
                 else await api.followUser(userId);
-                showToast(currentlyFollowing ? 'Unfollowed' : 'Followed successfully! 🚀');
+                showToast(currentlyFollowing ? 'Unfollowed' : 'Followed successfully!');
                 viewProfile(userId); // Refresh modal
             } catch (err) {
                 showToast(err.message || 'Action failed', 'error');
@@ -233,7 +235,7 @@
                 <h2>User Profile</h2>
             </div>
             <div class="modal-body" style="text-align: center;">
-                <div style="font-size: 4rem; margin-bottom: 10px;">👤</div>
+                <div style="font-size: 4rem; margin-bottom: 10px;"><i data-lucide="user-circle" style="width:64px;height:64px;"></i></div>
                 <h3 id="prof-name" class="mb-0">Full Name</h3>
                 <p id="prof-handle" class="opacity-70 mb-2">@username</p>
                 <div id="prof-role" class="badge badge-pending mb-3">ROLE</div>
@@ -258,5 +260,6 @@
             </div>
         </div>
     </div>
+<script>document.addEventListener('DOMContentLoaded', () => { refreshIcons(); });</script>
 </body>
 </html>

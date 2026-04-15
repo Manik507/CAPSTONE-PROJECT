@@ -1,6 +1,17 @@
 // ── EventHub API Utility ──
 const API_BASE = 'http://127.0.0.1:5000';
 
+// ── Lucide Icon Helper ──
+// Usage: icon('home') or icon('trophy', 18, 'gold')
+function icon(name, size = 16, color = 'currentColor', cls = '') {
+    return `<i data-lucide="${name}" style="width:${size}px;height:${size}px;color:${color};display:inline-block;vertical-align:middle;" class="lucide-icon ${cls}"></i>`;
+}
+
+// Re-render Lucide icons after dynamic content insertion
+function refreshIcons() {
+    if (window.lucide) window.lucide.createIcons();
+}
+
 const api = {
     getToken() {
         return localStorage.getItem('eventhub_token');
@@ -101,27 +112,28 @@ function buildNav() {
     const nav = document.getElementById('main-nav');
     if (!nav) return;
 
-    let links = `<a href="index.html">🏠 Home</a>`;
-    links += `<a href="leaderboard.html">🏆 Leaderboard</a>`;
+    let links = `<a href="index.html">${icon('home',16)} Home</a>`;
+    links += `<a href="leaderboard.html">${icon('trophy',16)} Leaderboard</a>`;
 
     if (!user) {
         links += `<a href="login.html" class="btn btn-secondary btn-sm">Login</a>`;
         links += `<a href="register.html" class="btn btn-primary btn-sm">Register</a>`;
     } else {
         // Profile link between Leaderboard and Dashboard
-        links += `<a href="profile.html">👤 Profile</a>`;
+        links += `<a href="profile.html">${icon('user',16)} Profile</a>`;
 
         if (role === 'ADMIN') {
-            links += `<a href="admin-dashboard.html">⚙️ Admin</a>`;
+            links += `<a href="admin-dashboard.html">${icon('settings',16)} Admin</a>`;
         } else if (role === 'INSTITUTE' || role === 'VOLUNTEER') {
-            links += `<a href="institute-dashboard.html">🏛️ Dashboard</a>`;
+            links += `<a href="institute-dashboard.html">${icon('building-2',16)} Dashboard</a>`;
         } else {
-            links += `<a href="dashboard.html">📋 Dashboard</a>`;
+            links += `<a href="dashboard.html">${icon('layout-dashboard',16)} Dashboard</a>`;
         }
         links += `<button onclick="logout()" class="btn btn-secondary btn-sm" style="margin-left: 10px;">Logout</button>`;
     }
 
     nav.innerHTML = links;
+    refreshIcons();
 }
 
 function logout() {
@@ -178,9 +190,10 @@ function togglePassword(inputId, btn) {
     const input = document.getElementById(inputId);
     if (input.type === 'password') {
         input.type = 'text';
-        btn.textContent = '🙈';
+        btn.innerHTML = icon('eye-off', 18);
     } else {
         input.type = 'password';
-        btn.textContent = '👁️';
+        btn.innerHTML = icon('eye', 18);
     }
+    refreshIcons();
 }

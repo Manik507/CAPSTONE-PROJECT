@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Institute Dashboard – EventHub</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <!-- Leaflet Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -19,7 +20,7 @@
 <body>
     <nav class="navbar">
         <div class="navbar-inner">
-            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+            <a href="index.html" class="navbar-brand"><span class="logo-icon"><i data-lucide="crosshair"></i></span> EventHub</a>
 
             <div class="navbar-links" id="main-nav"></div>
         </div>
@@ -27,13 +28,13 @@
 
     <div class="container">
         <div class="page-header">
-            <h1>🏛️ Institute Dashboard</h1>
+            <h1><i data-lucide="building-2" style="width:32px;height:32px;"></i> Institute Dashboard</h1>
             <p id="welcome-msg">Manage your events</p>
         </div>
 
         <!-- Institute Application -->
         <div id="apply-section" class="section-panel hidden">
-            <div class="section-panel-header"><h2>📋 Apply as Institute</h2></div>
+            <div class="section-panel-header"><h2><i data-lucide="clipboard-list" style="width:20px;height:20px;"></i> Apply as Institute</h2></div>
             <div class="section-panel-body">
                 <div id="apply-alert"></div>
                 <form id="apply-form">
@@ -61,13 +62,13 @@
         <div id="institute-content" class="hidden">
             <!-- Tabs -->
             <div class="tabs">
-                <button class="tab-btn active" data-tab="events-tab">📅 <span id="tab-events-label">My Events</span></button>
-                <button class="tab-btn role-institute-only" data-tab="create-tab">➕ Create Event</button>
-                <button class="tab-btn" data-tab="participants-tab">👥 Participants</button>
-                <button class="tab-btn" data-tab="updates-tab">📢 Post Update</button>
-                <button class="tab-btn role-institute-only" data-tab="results-tab">🏅 Result & Prizes</button>
-                <button class="tab-btn role-institute-only" data-tab="volunteers-tab">🛡️ Volunteers</button>
-                <button class="tab-btn role-institute-only" data-tab="profile-settings-tab">🏢 Institute Profile</button>
+                <button class="tab-btn active" data-tab="events-tab"><i data-lucide="calendar"></i> <span id="tab-events-label">My Events</span></button>
+                <button class="tab-btn role-institute-only" data-tab="create-tab"><i data-lucide="plus-circle"></i> Create Event</button>
+                <button class="tab-btn" data-tab="participants-tab"><i data-lucide="users"></i> Participants</button>
+                <button class="tab-btn" data-tab="updates-tab"><i data-lucide="megaphone"></i> Post Update</button>
+                <button class="tab-btn role-institute-only" data-tab="results-tab"><i data-lucide="medal"></i> Result & Prizes</button>
+                <button class="tab-btn role-institute-only" data-tab="volunteers-tab"><i data-lucide="shield"></i> Volunteers</button>
+                <button class="tab-btn role-institute-only" data-tab="profile-settings-tab"><i data-lucide="building"></i> Institute Profile</button>
             </div>
 
             <!-- My Events Tab -->
@@ -75,7 +76,7 @@
                 <div id="events-loading" class="text-center"><div class="spinner"></div></div>
                 <div id="events-list"></div>
                 <div id="events-empty" class="empty-state hidden">
-                    <div class="empty-icon">📅</div>
+                    <div class="empty-icon"><i data-lucide="calendar-x" style="width:64px;height:64px;"></i></div>
                     <h3>No Events Created</h3>
                     <p>Create your first event to get started!</p>
                 </div>
@@ -98,11 +99,11 @@
                             <div class="form-group-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
                                 <div class="form-group">
                                     <label for="event-date" style="font-weight:700; color:var(--accent-blue);">Start Date & Time</label>
-                                    <input type="text" id="event-date" placeholder="🗓️ Click to select start date..." required style="padding: 12px; font-weight: bold; background: rgba(255,255,255,0.05); border: 2px solid var(--accent-blue);">
+                                    <input type="text" id="event-date" placeholder="Click to select start date..." required style="padding: 12px; font-weight: bold; background: rgba(255,255,255,0.05); border: 2px solid var(--accent-blue);">
                                 </div>
                                 <div class="form-group">
                                     <label for="event-end-date" style="font-weight:700; color:var(--accent-amber);">End Date & Time</label>
-                                    <input type="text" id="event-end-date" placeholder="🗓️ Click to select end date..." required style="padding: 12px; font-weight: bold; background: rgba(255,255,255,0.05); border: 2px solid var(--accent-amber);">
+                                    <input type="text" id="event-end-date" placeholder="Click to select end date..." required style="padding: 12px; font-weight: bold; background: rgba(255,255,255,0.05); border: 2px solid var(--accent-amber);">
                                 </div>
                             </div>
                             <div class="form-group">
@@ -113,8 +114,8 @@
                             <div class="form-group">
                                 <label>Venue Location on Map (Required)</label>
                                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <span class="map-picker-msg">📍 Click on the map to set the precise location.</span>
-                                    <button type="button" class="btn btn-sm btn-secondary" onclick="useCurrentLocation()">🌐 Use Current Location</button>
+                                    <span class="map-picker-msg"><i data-lucide="map-pin" style="width:14px;height:14px;"></i> Click on the map to set the precise location.</span>
+                                    <button type="button" class="btn btn-sm btn-secondary" onclick="useCurrentLocation()"><i data-lucide="globe" style="width:14px;height:14px;"></i> Use Current Location</button>
                                 </div>
                                 <div id="map-picker" class="map-container" style="margin-top: 10px;"></div>
                                 <input type="hidden" id="event-lat">
@@ -186,7 +187,7 @@
                         <div id="participants-loading" class="hidden text-center"><div class="spinner"></div></div>
                         <div id="participants-list"></div>
                         <div id="participants-actions" class="mt-2 hidden">
-                            <button class="btn btn-secondary" onclick="exportParticipantsPDF()">📄 Export to PDF (with Filters)</button>
+                            <button class="btn btn-secondary" onclick="exportParticipantsPDF()"><i data-lucide="file-text" style="width:14px;height:14px;"></i> Export to PDF (with Filters)</button>
                         </div>
                     </div>
                 </div>
@@ -195,7 +196,7 @@
             <!-- Updates Tab -->
             <div class="tab-content" id="updates-tab">
                 <div class="section-panel">
-                    <div class="section-panel-header"><h2>📢 Post Live Update</h2></div>
+                    <div class="section-panel-header"><h2><i data-lucide="megaphone" style="width:20px;height:20px;"></i> Post Live Update</h2></div>
                     <div class="section-panel-body">
                         <p class="mb-2 opacity-70">Send a real-time message to all <strong>PAID</strong> participants of an event.</p>
                         <form id="update-form">
@@ -216,7 +217,7 @@
             <!-- Results Tab -->
             <div class="tab-content" id="results-tab">
                 <div class="section-panel">
-                    <div class="section-panel-header"><h2>🏆 Event Results & prizes</h2></div>
+                    <div class="section-panel-header"><h2><i data-lucide="trophy" style="width:20px;height:20px;"></i> Event Results & prizes</h2></div>
                     <div class="section-panel-body">
                         <div class="form-group">
                             <label for="results-event">Select Event</label>
@@ -248,9 +249,9 @@
                             <div id="results-prize-list" class="mb-3"></div>
                             <div class="btn-group">
                                 <button class="btn btn-secondary" onclick="goToResultsStep(2)">&larr; Back</button>
-                                <button class="btn btn-success role-institute-only" onclick="submitResults()">Finalize & Publish Hall of Fame 🏆</button>
+                                <button class="btn btn-success role-institute-only" onclick="submitResults()">Finalize & Publish Hall of Fame <i data-lucide="trophy" style="width:16px;height:16px;"></i></button>
                             </div>
-                            <div class="alert alert-info role-volunteer-only">ℹ️ Announcement can be done only by organization head.</div>
+                            <div class="alert alert-info role-volunteer-only"><i data-lucide="info" style="width:14px;height:14px;"></i> Announcement can be done only by organization head.</div>
                         </div>
                     </div>
                 </div>
@@ -259,7 +260,7 @@
             <!-- Volunteers Tab -->
             <div class="tab-content" id="volunteers-tab">
                 <div class="section-panel">
-                    <div class="section-panel-header"><h2>🛡️ Volunteer Management</h2></div>
+                    <div class="section-panel-header"><h2><i data-lucide="shield" style="width:20px;height:20px;"></i> Volunteer Management</h2></div>
                     <div class="section-panel-body">
                         <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem;">
                             <div>
@@ -314,7 +315,7 @@
             <!-- Profile Settings Tab -->
             <div class="tab-content" id="profile-settings-tab">
                 <div class="section-panel">
-                    <div class="section-panel-header"><h2>🏢 Institute Profile</h2></div>
+                    <div class="section-panel-header"><h2><i data-lucide="building" style="width:20px;height:20px;"></i> Institute Profile</h2></div>
                     <div class="section-panel-body">
                         <form id="inst-profile-form">
                             <div class="form-group">
@@ -469,7 +470,7 @@
                 };
 
                 await api.patch('/institutes/update', payload);
-                showToast('Institute profile updated! ✅', 'success');
+                showToast('Institute profile updated!', 'success');
             } catch (err) {
                 showToast(err.message || 'Failed to update', 'error');
             } finally {
@@ -505,7 +506,7 @@
                 }
                 if (inst.approval_status === 'REJECTED') {
                     statusBanner.classList.remove('hidden');
-                    statusBanner.innerHTML = `<div class="alert alert-error">❌ Your application was rejected. Contact support.</div>`;
+                    statusBanner.innerHTML = `<div class="alert alert-error">${icon('x-circle',16)} Your application was rejected. Contact support.</div>`;
                     adminContent.classList.add('hidden');
                     return;
                 }
@@ -563,7 +564,7 @@
                 setTimeout(() => location.reload(), 1000);
             } catch (err) {
                 document.getElementById('apply-alert').innerHTML =
-                    `<div class="alert alert-error">❌ ${err.message || 'Failed'}</div>`;
+                    `<div class="alert alert-error">${icon('x-circle',16)} ${err.message || 'Failed'}</div>`;
             }
         });
 
@@ -715,7 +716,7 @@
                 loadMyEvents();
             } catch (err) {
                 document.getElementById('event-alert').innerHTML =
-                    `<div class="alert alert-error">❌ ${err.message || 'Failed'}</div>`;
+                    `<div class="alert alert-error">${icon('x-circle',16)} ${err.message || 'Failed'}</div>`;
             }
         });
 
@@ -742,7 +743,7 @@
             }
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><h3>No participants found for this criteria</h3></div>`;
+                container.innerHTML = `<div class="empty-state"><div class="empty-icon"><i data-lucide="users" style="width:64px;height:64px;"></i></div><h3>No participants found for this criteria</h3></div>`;
                 document.getElementById('round-qualification-container').classList.add('hidden');
                 return;
             }
@@ -985,7 +986,7 @@
                 container.innerHTML = selectedResultsUsers.map((u, i) => `
                     <div class="card mb-2 result-prize-item" data-uid="${u.id}">
                         <div class="card-body">
-                            <h4 class="mb-2" style="color:var(--accent-blue);">🏆 ${u.name}</h4>
+                            <h4 class="mb-2" style="color:var(--accent-blue);">${icon('trophy',20)} ${u.name}</h4>
                             <div style="display:grid;grid-template-columns:100px 1fr 1fr;gap:1rem;">
                                 <div class="form-group">
                                     <label>Rank</label>
@@ -1025,7 +1026,7 @@
 
             try {
                 await api.setEventResults(eventId, winners);
-                showToast('Hall of Fame published successfully! 🏆', 'success');
+                showToast('Hall of Fame published successfully!', 'success');
                 // Reset
                 document.getElementById('results-event').value = '';
                 document.getElementById('results-step-1').classList.add('hidden');
@@ -1042,7 +1043,7 @@
             try {
                 if (currentlyFollowing) await api.unfollowUser(userId);
                 else await api.followUser(userId);
-                showToast(currentlyFollowing ? 'Unfollowed' : 'Followed successfully! 🚀');
+                showToast(currentlyFollowing ? 'Unfollowed' : 'Followed successfully!');
                 if (!document.getElementById('profile-modal').classList.contains('hidden')) viewProfile(userId);
             } catch (err) { showToast('Action failed', 'error'); }
         }
@@ -1112,7 +1113,7 @@
                 const vols = data.volunteers || [];
                 if (vols.length === 0) {
                     list.innerHTML = `<div class="text-center opacity-50 py-4">
-                        <div style="font-size:3rem; margin-bottom:1rem;">👥</div>
+                        <div style="font-size:3rem; margin-bottom:1rem;"><i data-lucide="users" style="width:48px;height:48px;"></i></div>
                         <div style="font-weight:600;">No assignments yet</div>
                         <div class="opacity-70">Assign volunteers to your events!</div>
                     </div>`;
@@ -1148,7 +1149,7 @@
             } catch (err) {
                 list.innerHTML = `
                     <div class="text-center opacity-50 py-4">
-                        <div style="font-size:3rem; margin-bottom:1rem;">👥</div>
+                        <div style="font-size:3rem; margin-bottom:1rem;"><i data-lucide="users" style="width:48px;height:48px;"></i></div>
                         <div style="font-weight:600;">No Volunteers Available</div>
                         <div class="opacity-70">Try adding volunteers or check back later.</div>
                     </div>
@@ -1275,12 +1276,12 @@
                 <h2>Entity Profile</h2>
             </div>
             <div class="modal-body" style="text-align: center;">
-                <div style="font-size: 4rem; margin-bottom: 10px;">👤</div>
+                <div style="font-size: 4rem; margin-bottom: 10px;"><i data-lucide="user-circle" style="width:64px;height:64px;"></i></div>
                 <h3 id="prof-name" class="mb-0">Full Name</h3>
                 <p id="prof-handle" class="opacity-70 mb-2">@username</p>
                 <div id="prof-contact" class="mb-2" style="font-size: 0.85rem; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; display: inline-block; min-width: 200px; text-align: left;">
-                    <div style="margin-bottom:4px;">📧 <strong>Email:</strong> <span id="prof-email"></span></div>
-                    <div>📞 <strong>Phone:</strong> <span id="prof-phone"></span></div>
+                    <div style="margin-bottom:4px;"><i data-lucide="mail" style="width:14px;height:14px;"></i> <strong>Email:</strong> <span id="prof-email"></span></div>
+                    <div><i data-lucide="phone" style="width:14px;height:14px;"></i> <strong>Phone:</strong> <span id="prof-phone"></span></div>
                 </div>
                 <div id="prof-role" class="badge badge-pending mb-3">ROLE</div>
                 <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
@@ -1301,5 +1302,6 @@
             </div>
         </div>
     </div>
+<script>document.addEventListener('DOMContentLoaded', () => { refreshIcons(); });</script>
 </body>
 </html>

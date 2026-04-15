@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Details – EventHub</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <!-- Leaflet Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -16,7 +17,7 @@
 <body>
     <nav class="navbar">
         <div class="navbar-inner">
-            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+            <a href="index.html" class="navbar-brand"><span class="logo-icon"><i data-lucide="crosshair"></i></span> EventHub</a>
             <div class="navbar-links" id="main-nav"></div>
         </div>
     </nav>
@@ -43,27 +44,27 @@
                         <div>
                             <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
                                 <div class="stat-card">
-                                    <div class="stat-icon">📅</div>
+                                    <div class="stat-icon"><i data-lucide="calendar" style="width:32px;height:32px;"></i></div>
                                     <div class="stat-value" id="event-date" style="font-size:1rem;"></div>
                                     <div class="stat-label">Date</div>
                                 </div>
                                 <div class="stat-card">
-                                    <div class="stat-icon">📍</div>
+                                    <div class="stat-icon"><i data-lucide="map-pin" style="width:32px;height:32px;"></i></div>
                                     <div class="stat-value" id="event-location" style="font-size:1rem;"></div>
                                     <div class="stat-label">Location</div>
                                 </div>
                                 <div class="stat-card">
-                                    <div class="stat-icon">🏷️</div>
+                                    <div class="stat-icon"><i data-lucide="tag" style="width:32px;height:32px;"></i></div>
                                     <div class="stat-value" id="event-fees" style="font-size:1rem;"></div>
                                     <div class="stat-label">Registration Fee</div>
                                 </div>
                                 <div class="stat-card">
-                                    <div class="stat-icon">🎮</div>
+                                    <div class="stat-icon"><i data-lucide="gamepad-2" style="width:32px;height:32px;"></i></div>
                                     <div class="stat-value" id="event-rounds" style="font-size:1rem;"></div>
                                     <div class="stat-label">Total Rounds</div>
                                 </div>
                                 <div class="stat-card">
-                                    <div class="stat-icon">📊</div>
+                                    <div class="stat-icon"><i data-lucide="bar-chart-3" style="width:32px;height:32px;"></i></div>
                                     <div class="stat-value" id="event-status" style="font-size:1rem;"></div>
                                     <div class="stat-label">Status</div>
                                 </div>
@@ -75,19 +76,19 @@
 
                             <!-- Map Section -->
                             <div class="mt-3 hidden" id="map-section">
-                                <h3 class="mb-2">📍 Venue Map</h3>
+                                <h3 class="mb-2"><i data-lucide="map-pin" style="width:20px;height:20px;"></i> Venue Map</h3>
                                 <div id="event-map" class="map-container"></div>
                             </div>
 
                             <!-- Extra Locations -->
                             <div class="mt-3 hidden" id="extra-locations-section">
-                                <h3 class="mb-2">🏢 Additional Locations</h3>
+                                <h3 class="mb-2"><i data-lucide="building" style="width:20px;height:20px;"></i> Additional Locations</h3>
                                 <p id="extra-locations-text" style="color:var(--text-secondary);"></p>
                             </div>
 
                             <!-- Live Updates for PAID participants -->
                             <div class="mt-3 hidden" id="updates-section">
-                                <h3 class="mb-2">📢 Live Updates</h3>
+                                <h3 class="mb-2"><i data-lucide="megaphone" style="width:20px;height:20px;"></i> Live Updates</h3>
                                 <div id="updates-list" class="notif-list"
                                     style="max-height:400px;border:1px solid var(--border-glass);border-radius:var(--radius-md);padding:10px;">
                                     <div class="text-center py-2 opacity-50">No updates yet.</div>
@@ -96,7 +97,7 @@
 
                             <!-- Hall of Fame -->
                             <div class="mt-3 hidden" id="hall-of-fame-section">
-                                <h2 class="mb-3 text-center" style="font-size:2rem;">🏆 Hall of Fame</h2>
+                                <h2 class="mb-3 text-center" style="font-size:2rem;"><i data-lucide="trophy" style="width:28px;height:28px;"></i> Hall of Fame</h2>
                                 <div id="hall-of-fame-list"
                                     style="display:grid;grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));gap:1.5rem;">
                                 </div>
@@ -108,7 +109,7 @@
         </div>
 
         <div id="event-error" class="empty-state hidden">
-            <div class="empty-icon">❌</div>
+            <div class="empty-icon"><i data-lucide="x-circle" style="width:64px;height:64px;"></i></div>
             <h3>Event Not Found</h3>
             <p><a href="index.html">Go back to events</a></p>
         </div>
@@ -138,7 +139,7 @@
 
                 document.title = `${e.title} – EventHub`;
                 document.getElementById('event-title').textContent = e.title;
-                document.getElementById('event-institute').textContent = e.institute_name ? `🏛️ by ${e.institute_name}` : '';
+                document.getElementById('event-institute').innerHTML = e.institute_name ? `${icon('building-2',16)} by ${e.institute_name}` : '';
                 document.getElementById('event-desc').textContent = e.description || 'No description available.';
 
                 const startStr = formatDateTime(e.date);
@@ -174,7 +175,7 @@
                 if (e.image_url) {
                     imgContainer.innerHTML = `<img src="${e.image_url}" alt="${e.title}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-md);">`;
                 } else {
-                    imgContainer.innerHTML = '<div class="placeholder-icon">🎪</div>';
+                    imgContainer.innerHTML = `<div class="placeholder-icon">${icon('ticket', 48)}</div>`;
                 }
 
                 // Action area
@@ -182,10 +183,10 @@
                 const actionArea = document.getElementById('action-area');
 
                 if (!user) {
-                    actionArea.innerHTML = `<a href="login.html" class="btn btn-primary btn-lg w-full">🔒 Login to Register</a>`;
+                    actionArea.innerHTML = `<a href="login.html" class="btn btn-primary btn-lg w-full">${icon('lock',16)} Login to Register</a>`;
                 } else if (user.role === 'PARTICIPANT' && e.approval_status === 'APPROVED') {
                     if (e.is_registered) {
-                        actionArea.innerHTML = `<button class="btn btn-success btn-lg w-full" disabled>✅ Registered</button>`;
+                        actionArea.innerHTML = `<button class="btn btn-success btn-lg w-full" disabled>${icon('check-circle',16)} Registered</button>`;
                     } else {
                         actionArea.innerHTML = `
                             <div id="registration-form-area" class="section-panel" style="margin-top:1rem; padding:1.5rem; border:1px solid var(--accent-blue); background:rgba(59, 130, 246, 0.05);">
@@ -201,14 +202,14 @@
                                         <small class="opacity-60">Required to confirm payment (after admin verifies)</small>
                                     </div>
                                 ` : ''}
-                                <button class="btn btn-primary btn-lg w-full" id="register-btn" onclick="registerForEvent()">🎯 ${e.qr_code_url ? 'Submit Payment & Register' : 'Register for Event'}</button>
+                                <button class="btn btn-primary btn-lg w-full" id="register-btn" onclick="registerForEvent()">${icon('crosshair',16)} ${e.qr_code_url ? 'Submit Payment & Register' : 'Register for Event'}</button>
                             </div>
                         `;
                     }
                 } else if (user.role === 'PARTICIPANT') {
                     actionArea.innerHTML = `<div class="alert alert-info">⏳ This event is not yet approved.</div>`;
                 } else {
-                    actionArea.innerHTML = `<div class="alert alert-info">ℹ️ Only participants can register for events.</div>`;
+                    actionArea.innerHTML = `<div class="alert alert-info">${icon('info',16)} Only participants can register for events.</div>`;
                 }
 
                 // Load updates and results if logged in as participant
@@ -259,13 +260,14 @@
                     throw new Error(err.message || 'Registration failed');
                 }
                 
-                showToast('Successfully registered! 🎉', 'success');
+                showToast('Successfully registered!', 'success');
                 // Refresh data to update spots count and button state immediately
                 loadEventData();
             } catch (err) {
                 showToast(err.message || 'Registration failed', 'error');
                 btn.disabled = false;
-                btn.textContent = '🎯 Register for Event';
+                btn.innerHTML = `${icon('crosshair',16)} Register for Event`;
+                refreshIcons();
             }
         }
 
@@ -308,7 +310,7 @@
                 document.getElementById('hall-of-fame-list').innerHTML = results.map(r => `
                     <div class="card" style="border:1px solid var(--accent-amber);background:rgba(245, 158, 11, 0.05);">
                         <div class="card-body text-center">
-                            <div style="font-size:2.5rem;margin-bottom:0.5rem;">${r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : '🏅'}</div>
+                            <div style="font-size:2.5rem;margin-bottom:0.5rem;">${r.rank === 1 ? icon('medal', 40, '#FFD700') : r.rank === 2 ? icon('medal', 40, '#C0C0C0') : r.rank === 3 ? icon('medal', 40, '#CD7F32') : icon('award', 40)}</div>
                             <h3 style="color:var(--accent-amber);">${r.prize_name}</h3>
                             <div style="font-weight:600;font-size:1.1rem;margin:0.5rem 0;">${r.user_name}</div>
                             <p style="font-size:0.9rem;opacity:0.8;">${r.prize_description || ''}</p>
@@ -318,6 +320,7 @@
             } catch (err) { }
         }
     </script>
+<script>document.addEventListener('DOMContentLoaded', () => { refreshIcons(); });</script>
 </body>
 
 </html>

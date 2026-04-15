@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard – EventHub</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         .modal-overlay {
             position: fixed;
@@ -51,33 +52,33 @@
 <body>
     <nav class="navbar">
         <div class="navbar-inner">
-            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+            <a href="index.html" class="navbar-brand"><span class="logo-icon"><i data-lucide="crosshair"></i></span> EventHub</a>
             <div class="navbar-links" id="main-nav"></div>
         </div>
     </nav>
 
     <div class="container">
         <div class="page-header">
-            <h1>⚙️ Admin Dashboard</h1>
+            <h1><i data-lucide="settings" style="width:32px;height:32px;"></i> Admin Dashboard</h1>
             <p>Manage the entire EventHub platform</p>
         </div>
 
         <!-- Platform Stats -->
         <div class="dashboard-grid" id="admin-stats">
-            <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" id="s-users">0</div><div class="stat-label">Total Users</div></div>
-            <div class="stat-card"><div class="stat-icon">🏛️</div><div class="stat-value" id="s-institutes">0</div><div class="stat-label">Institutes</div></div>
-            <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-value" id="s-events">0</div><div class="stat-label">Events</div></div>
-            <div class="stat-card"><div class="stat-icon">🎮</div><div class="stat-value" id="s-participants">0</div><div class="stat-label">Participants</div></div>
+            <div class="stat-card"><div class="stat-icon"><i data-lucide="users" style="width:32px;height:32px;"></i></div><div class="stat-value" id="s-users">0</div><div class="stat-label">Total Users</div></div>
+            <div class="stat-card"><div class="stat-icon"><i data-lucide="building-2" style="width:32px;height:32px;"></i></div><div class="stat-value" id="s-institutes">0</div><div class="stat-label">Institutes</div></div>
+            <div class="stat-card"><div class="stat-icon"><i data-lucide="calendar" style="width:32px;height:32px;"></i></div><div class="stat-value" id="s-events">0</div><div class="stat-label">Events</div></div>
+            <div class="stat-card"><div class="stat-icon"><i data-lucide="gamepad-2" style="width:32px;height:32px;"></i></div><div class="stat-value" id="s-participants">0</div><div class="stat-label">Participants</div></div>
         </div>
 
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab-btn active" data-tab="inst-tab">🏛️ Pending Institutes</button>
-            <button class="tab-btn" data-tab="evt-tab">📅 Pending Events</button>
-            <button class="tab-btn" data-tab="all-inst-tab">📋 All Institutes</button>
-            <button class="tab-btn" data-tab="all-evt-tab">📋 All Events</button>
-            <button class="tab-btn" data-tab="all-part-tab">👥 All Participants</button>
-            <button class="tab-btn" data-tab="create-admin-tab">🆕 Create Admin</button>
+            <button class="tab-btn active" data-tab="inst-tab"><i data-lucide="building-2"></i> Pending Institutes</button>
+            <button class="tab-btn" data-tab="evt-tab"><i data-lucide="calendar"></i> Pending Events</button>
+            <button class="tab-btn" data-tab="all-inst-tab"><i data-lucide="clipboard-list"></i> All Institutes</button>
+            <button class="tab-btn" data-tab="all-evt-tab"><i data-lucide="clipboard-list"></i> All Events</button>
+            <button class="tab-btn" data-tab="all-part-tab"><i data-lucide="users"></i> All Participants</button>
+            <button class="tab-btn" data-tab="create-admin-tab"><i data-lucide="user-plus"></i> Create Admin</button>
         </div>
 
         <!-- Pending Institutes -->
@@ -85,7 +86,7 @@
             <div id="inst-loading" class="text-center"><div class="spinner"></div></div>
             <div id="inst-list"></div>
             <div id="inst-empty" class="empty-state hidden">
-                <div class="empty-icon">✅</div>
+                <div class="empty-icon"><i data-lucide="check-circle" style="width:64px;height:64px;"></i></div>
                 <h3>No Pending Institutes</h3>
                 <p>All caught up!</p>
             </div>
@@ -96,7 +97,7 @@
             <div id="evt-loading" class="text-center"><div class="spinner"></div></div>
             <div id="evt-list"></div>
             <div id="evt-empty" class="empty-state hidden">
-                <div class="empty-icon">✅</div>
+                <div class="empty-icon"><i data-lucide="check-circle" style="width:64px;height:64px;"></i></div>
                 <h3>No Pending Events</h3>
                 <p>All caught up!</p>
             </div>
@@ -157,12 +158,12 @@
             <!-- Decision Section (Reason) -->
             <div id="decision-section" class="hidden" style="padding: 0 1.5rem 1.5rem 1.5rem; border-top: 1px solid var(--border-glass); background: rgba(59, 130, 246, 0.03);">
                 <div class="form-group" style="margin-top: 1.5rem;">
-                    <label for="decision-reason" style="font-weight: 700; color: var(--accent-blue);">🛡️ Reason for Decision (Required)</label>
+                    <label for="decision-reason" style="font-weight: 700; color: var(--accent-blue);"><i data-lucide="shield" style="width:16px;height:16px;"></i> Reason for Decision (Required)</label>
                     <textarea id="decision-reason" class="card" style="width: 100%; min-height: 80px; padding: 10px; margin-top: 5px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass);" placeholder="Provide a brief explanation for this approval or rejection..."></textarea>
                 </div>
                 <div id="decision-actions" class="btn-group" style="justify-content: flex-end; margin-top: 1rem;">
-                    <button class="btn btn-success" id="btn-approve-modal">✅ Approve</button>
-                    <button class="btn btn-danger" id="btn-reject-modal">❌ Reject</button>
+                    <button class="btn btn-success" id="btn-approve-modal"><i data-lucide="check-circle" style="width:16px;height:16px;"></i> Approve</button>
+                    <button class="btn btn-danger" id="btn-reject-modal"><i data-lucide="x-circle" style="width:16px;height:16px;"></i> Reject</button>
                 </div>
             </div>
 
@@ -246,9 +247,9 @@
                             <td>${formatDate(i.created_at)}</td>
                             <td>
                                 <div class="btn-group">
-                                    <button class="btn btn-secondary btn-sm" onclick='showDetails("institute", ${i.id}, ${JSON.stringify(i).replace(/'/g, "&apos;")})'>🔍 Details</button>
-                                    <button class="btn btn-success btn-sm" onclick="approveInstitute(${i.id},'APPROVED')">✅ Approve</button>
-                                    <button class="btn btn-danger btn-sm" onclick="approveInstitute(${i.id},'REJECTED')">❌ Reject</button>
+                                    <button class="btn btn-secondary btn-sm" onclick='showDetails("institute", ${i.id}, ${JSON.stringify(i).replace(/'/g, "&apos;")})'>${icon('search',14)} Details</button>
+                                    <button class="btn btn-success btn-sm" onclick="approveInstitute(${i.id},'APPROVED')">${icon('check-circle',14)} Approve</button>
+                                    <button class="btn btn-danger btn-sm" onclick="approveInstitute(${i.id},'REJECTED')">${icon('x-circle',14)} Reject</button>
                                 </div>
                             </td>
                         </tr>
@@ -284,9 +285,9 @@
                             <td>${e.location}</td>
                             <td>
                                 <div class="btn-group">
-                                    <button class="btn btn-secondary btn-sm" onclick='showDetails("event", ${e.id}, ${JSON.stringify(e).replace(/'/g, "&apos;")})'>🔍 Details</button>
-                                    <button class="btn btn-success btn-sm" onclick="approveEvent(${e.id},'APPROVED')">✅ Approve</button>
-                                    <button class="btn btn-danger btn-sm" onclick="approveEvent(${e.id},'REJECTED')">❌ Reject</button>
+                                    <button class="btn btn-secondary btn-sm" onclick='showDetails("event", ${e.id}, ${JSON.stringify(e).replace(/'/g, "&apos;")})'>${icon('search',14)} Details</button>
+                                    <button class="btn btn-success btn-sm" onclick="approveEvent(${e.id},'APPROVED')">${icon('check-circle',14)} Approve</button>
+                                    <button class="btn btn-danger btn-sm" onclick="approveEvent(${e.id},'REJECTED')">${icon('x-circle',14)} Reject</button>
                                 </div>
                             </td>
                         </tr>
@@ -314,7 +315,7 @@
                             <td>${i.email}</td>
                             <td>${statusBadge(i.approval_status)}</td>
                             <td>${formatDate(i.created_at)}</td>
-                            <td><button class="btn btn-secondary btn-sm" onclick='showDetails("institute", ${i.id}, ${JSON.stringify(i).replace(/'/g, "&apos;")})'>🔍 View</button></td>
+                            <td><button class="btn btn-secondary btn-sm" onclick='showDetails("institute", ${i.id}, ${JSON.stringify(i).replace(/'/g, "&apos;")})'>${icon('search',14)} View</button></td>
                         </tr>
                     `).join('')}
                     </tbody>
@@ -339,7 +340,7 @@
                             <td>${e.institute_name || '-'}</td>
                             <td>${formatDate(e.date)}</td>
                             <td>${statusBadge(e.approval_status)}</td>
-                            <td><button class="btn btn-secondary btn-sm" onclick='showDetails("event", ${e.id}, ${JSON.stringify(e).replace(/'/g, "&apos;")})'>🔍 View</button></td>
+                            <td><button class="btn btn-secondary btn-sm" onclick='showDetails("event", ${e.id}, ${JSON.stringify(e).replace(/'/g, "&apos;")})'>${icon('search',14)} View</button></td>
                         </tr>
                     `).join('')}
                     </tbody>
@@ -423,7 +424,7 @@
             const val = (v) => (v === null || v === undefined || v === "" || v === "null") ? '-' : v;
 
             if (type === 'institute') {
-                title.textContent = `🏛️ Institute: ${val(data.name)}`;
+                title.textContent = `Institute: ${val(data.name)}`;
                 body.innerHTML = `
                     <div class="details-grid">
                         <div class="details-label">ID</div><div class="details-value">#${val(data.id)}</div>
@@ -441,7 +442,7 @@
                     </div>
                 `;
             } else if (type === 'event') {
-                title.textContent = `📅 Event: ${val(data.title)}`;
+                title.textContent = `Event: ${val(data.title)}`;
                 
                 // Full high quality photo view
                 let imgHtml = `
@@ -450,7 +451,7 @@
                         ${data.image_url ? `
                             <img src="${data.image_url}" style="width: 100%; border-radius: var(--radius-md); max-height: 400px; object-fit: contain; background: #000; border: 1px solid var(--border-glass);">
                         ` : `
-                            <div style="width: 100%; height: 200px; background: var(--bg-glass); display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: 3rem; opacity: 0.2;">🖼️</div>
+                            <div style="width: 100%; height: 200px; background: var(--bg-glass); display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: 3rem; opacity: 0.2;"><i data-lucide="image" style="width:48px;height:48px;"></i></div>
                         `}
                     </div>
                 `;
@@ -520,5 +521,6 @@
             setInterval(refreshAll, 10000);
         });
     </script>
+<script>document.addEventListener('DOMContentLoaded', () => { refreshIcons(); });</script>
 </body>
 </html>

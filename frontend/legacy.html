@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Legacy – EventHub</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         .timeline {
             position: relative;
@@ -123,7 +124,7 @@
 <body>
     <nav class="navbar">
         <div class="navbar-inner">
-            <a href="dashboard.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub Legacy</a>
+            <a href="dashboard.html" class="navbar-brand"><span class="logo-icon"><i data-lucide="crosshair"></i></span> EventHub Legacy</a>
             <div class="navbar-links">
                 <a href="dashboard.html">Dashboard</a>
             </div>
@@ -132,19 +133,19 @@
 
     <div class="container">
         <div class="page-header text-center">
-            <h1>📜 My Career Legacy</h1>
+            <h1><i data-lucide="scroll" style="width:32px;height:32px;"></i> My Career Legacy</h1>
             <p>Your journey through competitions, prizes, and achievements</p>
         </div>
 
         <!-- Career Stats -->
         <div class="dashboard-grid mb-4" style="grid-template-columns: repeat(2, 1fr);">
             <div class="stat-card">
-                <div class="stat-icon">⚡</div>
+                <div class="stat-icon"><i data-lucide="zap" style="width:32px;height:32px;"></i></div>
                 <div class="stat-value" id="stats-xp">0</div>
                 <div class="stat-label">Lifetime XP</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🏆</div>
+                <div class="stat-icon"><i data-lucide="trophy" style="width:32px;height:32px;"></i></div>
                 <div class="stat-value" id="stats-trophies">0</div>
                 <div class="stat-label">Total Trophies</div>
             </div>
@@ -155,7 +156,7 @@
         </div>
         <div id="legacy-timeline" class="timeline hidden"></div>
         <div id="legacy-empty" class="empty-state hidden">
-            <div class="empty-icon">🎒</div>
+            <div class="empty-icon"><i data-lucide="backpack" style="width:64px;height:64px;"></i></div>
             <h3>Your Bag is Empty</h3>
             <p>Start participating in events to build your legacy!</p>
         </div>
@@ -203,7 +204,7 @@
                             
                             ${item.prize ? `
                                 <div class="legacy-prize">
-                                    <div style="font-size:1.5rem; margin-bottom:5px;">${item.prize.rank === 1 ? '🥇' : item.prize.rank === 2 ? '🥈' : '🥉'}</div>
+                                    <div style="font-size:1.5rem; margin-bottom:5px;">${item.prize.rank === 1 ? icon('medal', 28, '#FFD700') : item.prize.rank === 2 ? icon('medal', 28, '#C0C0C0') : icon('medal', 28, '#CD7F32')}</div>
                                     <strong style="color:var(--accent-amber);">${item.prize.prize_name}</strong>
                                     <p style="font-size:0.8rem; margin-top:3px; opacity:0.8;">${item.prize.prize_description || ''}</p>
                                 </div>
@@ -225,6 +226,7 @@
 
         document.addEventListener('DOMContentLoaded', loadLegacy);
     </script>
+<script>document.addEventListener('DOMContentLoaded', () => { refreshIcons(); });</script>
 </body>
 
 </html>

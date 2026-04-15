@@ -813,6 +813,38 @@ tr:hover td {
     color: var(--text-secondary);
 }
 
+/* ── Lucide Icons ── */
+.lucide-icon,
+[data-lucide] {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+.stat-icon [data-lucide] {
+    width: 32px;
+    height: 32px;
+}
+
+.empty-icon [data-lucide] {
+    width: 64px;
+    height: 64px;
+    opacity: 0.3;
+}
+
+.navbar-brand [data-lucide] {
+    width: 24px;
+    height: 24px;
+}
+
+.btn [data-lucide],
+.tab-btn [data-lucide],
+.navbar-links a [data-lucide] {
+    width: 16px;
+    height: 16px;
+    margin-right: 2px;
+}
+
 /* ── Modal ── */
 .modal-overlay {
     display: none;

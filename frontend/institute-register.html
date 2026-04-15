@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Institute Application – EventHub</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         .institute-theme {
             background: linear-gradient(135deg, #1e1e2f 0%, #151520 100%);
@@ -15,14 +16,14 @@
 <body>
     <nav class="navbar">
         <div class="navbar-inner">
-            <a href="index.html" class="navbar-brand"><span class="logo-icon">🎯</span> EventHub</a>
+            <a href="index.html" class="navbar-brand"><span class="logo-icon"><i data-lucide="crosshair"></i></span> EventHub</a>
             <div class="navbar-links" id="main-nav"></div>
         </div>
     </nav>
 
     <div class="form-container" style="margin-top: 2rem;">
         <div class="form-card institute-theme" style="max-width: 500px;">
-            <h2 style="color: #4a90e2;">🏛️ Institute Application</h2>
+            <h2 style="color: #4a90e2;"><i data-lucide="building-2" style="width:24px;height:24px;"></i> Institute Application</h2>
             <p class="subtitle">Register your Institute to organize events</p>
 
             <div id="reg-alert"></div>
@@ -49,7 +50,7 @@
                     <label for="password">Password</label>
                     <div class="password-input-container">
                         <input type="password" id="password" placeholder="Min 6 characters" required minlength="6">
-                        <button type="button" class="password-toggle" onclick="togglePassword('password', this)">👁️</button>
+                        <button type="button" class="password-toggle" onclick="togglePassword('password', this)"><i data-lucide="eye" style="width:18px;height:18px;"></i></button>
                     </div>
                 </div>
 
@@ -69,7 +70,7 @@
                     <textarea id="inst-details" placeholder="Please provide your institute website or verification details so Admins can verify your authenticity…" required style="height: 80px;"></textarea>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-full btn-lg" id="reg-btn" style="background: #4a90e2; border-color: #4a90e2;">🚀 Apply Now</button>
+                <button type="submit" class="btn btn-primary w-full btn-lg" id="reg-btn" style="background: #4a90e2; border-color: #4a90e2;"><i data-lucide="rocket"></i> Apply Now</button>
             </form>
 
             <div class="form-footer mt-2">
@@ -115,11 +116,13 @@
 
             } catch (err) {
                 document.getElementById('reg-alert').innerHTML =
-                    `<div class="alert alert-error">❌ ${err.message || 'Application failed. Email might be taken.'}</div>`;
+                    `<div class="alert alert-error"><i data-lucide="x-circle" style="width:16px;height:16px;"></i> ${err.message || 'Application failed. Email might be taken.'}</div>`;
                 btn.disabled = false;
-                btn.textContent = '🚀 Apply Now';
+                btn.innerHTML = '<i data-lucide="rocket"></i> Apply Now';
+                refreshIcons();
             }
         });
     </script>
+<script>document.addEventListener('DOMContentLoaded', () => { refreshIcons(); });</script>
 </body>
 </html>

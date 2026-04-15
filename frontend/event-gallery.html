@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Gallery - EventHub</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         .gallery-shell {
             min-height: 100vh;
@@ -165,5 +166,6 @@
 
         document.addEventListener('DOMContentLoaded', loadGallery);
     </script>
+<script>document.addEventListener('DOMContentLoaded', () => { if(window.lucide) lucide.createIcons(); });</script>
 </body>
 </html>
