@@ -187,7 +187,23 @@
                     if (e.is_registered) {
                         actionArea.innerHTML = `<button class="btn btn-success btn-lg w-full" disabled>✅ Registered</button>`;
                     } else {
-                        actionArea.innerHTML = `<button class="btn btn-primary btn-lg w-full" id="register-btn" onclick="registerForEvent()">🎯 Register for Event</button>`;
+                        actionArea.innerHTML = `
+                            <div id="registration-form-area" class="section-panel" style="margin-top:1rem; padding:1.5rem; border:1px solid var(--accent-blue); background:rgba(59, 130, 246, 0.05);">
+                                <h3 class="mb-3 text-center">Registration</h3>
+                                ${e.qr_code_url ? `
+                                    <div style="margin-bottom: 1.5rem; text-align:center;">
+                                        <p style="margin-bottom:0.8rem; font-weight:bold;">Scan QR code to pay ₹${e.fees}</p>
+                                        <img src="${e.qr_code_url}" alt="Payment QR Code" style="max-width:200px; border-radius:8px; border: 2px solid var(--border-glass);">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="receipt-image">Upload Payment Screenshot</label>
+                                        <input type="file" id="receipt-image" accept="image/*">
+                                        <small class="opacity-60">Required to confirm payment (after admin verifies)</small>
+                                    </div>
+                                ` : ''}
+                                <button class="btn btn-primary btn-lg w-full" id="register-btn" onclick="registerForEvent()">🎯 ${e.qr_code_url ? 'Submit Payment & Register' : 'Register for Event'}</button>
+                            </div>
+                        `;
                     }
                 } else if (user.role === 'PARTICIPANT') {
                     actionArea.innerHTML = `<div class="alert alert-info">⏳ This event is not yet approved.</div>`;
@@ -224,7 +240,25 @@
             btn.textContent = 'Registering…';
 
             try {
-                await api.post(`/events/register/${eventId}`);
+                const formData = new FormData();
+                const receiptInput = document.getElementById('receipt-image');
+                if (receiptInput && receiptInput.files && receiptInput.files.length > 0) {
+                    formData.append('receipt_image', receiptInput.files[0]);
+                }
+                
+                const res = await fetch(`/events/register/${eventId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${api.getToken()}`
+                    },
+                    body: formData
+                });
+                
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.message || 'Registration failed');
+                }
+                
                 showToast('Successfully registered! 🎉', 'success');
                 // Refresh data to update spots count and button state immediately
                 loadEventData();
