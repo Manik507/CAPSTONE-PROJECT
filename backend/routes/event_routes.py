@@ -68,6 +68,7 @@ def create_event():
         institute_id=institute.id,
         title=title,
         description=data.get("description", ""),
+        rules=data.get("rules", ""),
         date=event_date,
         end_date=end_date,
         location=location,

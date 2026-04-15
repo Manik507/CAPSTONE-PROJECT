@@ -140,6 +140,8 @@
                 emailEl.style.color = (p.email === 'Private' || !p.email) ? 'var(--accent-red)' : 'var(--accent-blue)';
                 phoneEl.style.color = (p.phone === 'Private' || !p.phone) ? 'var(--accent-red)' : 'var(--accent-blue)';
 
+                currentViewedUserId = userId;
+                
                 document.getElementById('prof-role').textContent = p.role;
                 document.getElementById('prof-role').className = `badge ${p.role === 'INSTITUTE' ? 'badge-approved' : 'badge-pending'}`;
                 
@@ -253,7 +255,7 @@
 
             // Load events list
             try {
-                const data = await api.get('/events');
+                const data = await api.get('/events?include_completed=true');
                 const allEvents = data.events || [];
                 document.getElementById('events-loading').classList.add('hidden');
 
@@ -304,7 +306,60 @@
                 refreshIcons();
             }
         });
+
+        // Current viewed user ID for fetching lists
+        let currentViewedUserId = null;
+        let listPollInterval = null;
+
+        async function showUserList(type) {
+            if (!currentViewedUserId) return;
+            document.getElementById('list-modal-title').textContent = type === 'followers' ? 'Followers' : 'Following';
+            document.getElementById('list-modal-body').innerHTML = '<div class="text-center py-2"><div class="spinner"></div></div>';
+            document.getElementById('list-modal-overlay').classList.remove('hidden');
+            
+            const fetchAndRender = async () => {
+                try {
+                    const data = await api.get(`/social/${type}/${currentViewedUserId}`);
+                    const items = data[type] || [];
+                    const list = document.getElementById('list-modal-body');
+
+                    if (items.length === 0) {
+                        list.innerHTML = `<div class="text-center py-4"><div style="font-weight:600;">No ${type} yet</div></div>`;
+                        return;
+                    }
+
+                    list.innerHTML = items.map((u) => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div>
+                                <div style="font-weight: 600;">${u.full_name}</div>
+                                <div class="opacity-70" style="font-size: 0.85rem;">@${u.username}</div>
+                            </div>
+                            <button onclick="viewProfile(${u.id}); closeListModal();" class="btn btn-secondary btn-sm">View Profile</button>
+                        </div>
+                    `).join('');
+                } catch (err) {
+                    console.error('List refresh failed', err);
+                }
+            };
+
+            await fetchAndRender();
+        }
+
+        function closeListModal() {
+            document.getElementById('list-modal-overlay').classList.add('hidden');
+        }
     </script>
+
+    <!-- List Modal Overlay for Followers/Following -->
+    <div id="list-modal-overlay" class="modal-overlay hidden" style="z-index: 1002;" onclick="if(event.target === this) closeListModal()">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2 id="list-modal-title">Users</h2>
+                <button class="close-btn" onclick="closeListModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="list-modal-body" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+    </div>
 
     <!-- Profile Modal Overlay -->
     <div id="profile-modal-overlay" class="modal-overlay" onclick="if(event.target === this) closeProfileModal()">
@@ -337,8 +392,12 @@
                     </div>
 
                     <div class="mb-2" style="display: flex; justify-content: space-around; font-size: 0.9rem; text-align: center;">
-                        <div><strong id="prof-followers">0</strong><br><span class="opacity-70">Followers</span></div>
-                        <div><strong id="prof-following">0</strong><br><span class="opacity-70">Following</span></div>
+                        <div class="clickable" style="cursor:pointer;" onclick="showUserList('followers')">
+                            <strong id="prof-followers">0</strong><br><span class="opacity-70">Followers</span>
+                        </div>
+                        <div class="clickable" style="cursor:pointer;" onclick="showUserList('following')">
+                            <strong id="prof-following">0</strong><br><span class="opacity-70">Following</span>
+                        </div>
                     </div>
 
                     <div id="prof-mutual-container" class="mb-2 hidden" style="font-size: 0.85rem; background: var(--bg-glass); padding: 10px; border-radius: 8px;">

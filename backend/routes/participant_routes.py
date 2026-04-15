@@ -78,6 +78,28 @@ def register_for_event(event_id):
         db.session.rollback()
         raise ApiError("Already registered for this event", status_code=409)
 
+    # Grant 30 XP for participating (registering)
+    try:
+        from services.reward_service import _get_or_create_leaderboard
+        from models.reward_history import RewardHistory
+        
+        entry = _get_or_create_leaderboard(uid)
+        entry.xp += 30
+        
+        reward = RewardHistory(
+            user_id=uid,
+            event_id=event_id,
+            reward_type="PARTICIPATION",
+            xp_awarded=30,
+            trophies_awarded=0,
+            description=f"🎉 Registered for: {event.title}"
+        )
+        db.session.add(reward)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+
+
     return jsonify({"participant": participant.to_dict()}), 201
 
 

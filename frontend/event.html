@@ -39,7 +39,13 @@
                         <div>
                             <div id="event-image-container" class="card-image"
                                 style="border-radius:var(--radius-md);margin-bottom:1.5rem;height:250px;"></div>
-                            <p id="event-desc" style="color:var(--text-secondary);line-height:1.8;"></p>
+                            <h3 class="mb-2"><i data-lucide="info" style="width:20px;height:20px;"></i> Description</h3>
+                            <p id="event-desc" style="color:var(--text-secondary);line-height:1.8; white-space: pre-wrap; margin-bottom: 2rem;"></p>
+
+                            <div class="mt-3 hidden" id="rules-section">
+                                <h3 class="mb-2"><i data-lucide="scale" style="width:20px;height:20px;"></i> Rules & Guidelines</h3>
+                                <div id="event-rules" style="color:var(--text-secondary);line-height:1.8; white-space: pre-wrap; background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-glass);"></div>
+                            </div>
                         </div>
                         <div>
                             <div class="dashboard-grid" style="grid-template-columns:1fr 1fr;">
@@ -141,6 +147,10 @@
                 document.getElementById('event-title').textContent = e.title;
                 document.getElementById('event-institute').innerHTML = e.institute_name ? `${icon('building-2',16)} by ${e.institute_name}` : '';
                 document.getElementById('event-desc').textContent = e.description || 'No description available.';
+                if (e.rules) {
+                    document.getElementById('rules-section').classList.remove('hidden');
+                    document.getElementById('event-rules').textContent = e.rules;
+                }
 
                 const startStr = formatDateTime(e.date);
                 const endStr = formatDateTime(e.end_date);

@@ -10,6 +10,7 @@ class Event(db.Model):
     institute_id = db.Column(db.Integer, db.ForeignKey("institutes.id", ondelete="CASCADE"), nullable=False, index=True)
     title = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    rules = db.Column(db.Text, nullable=True)
     date = db.Column(db.DateTime(timezone=True), nullable=False)
     location = db.Column(db.String(255), nullable=False)
     capacity = db.Column(db.Integer, nullable=False, default=100)
@@ -38,6 +39,7 @@ class Event(db.Model):
             "institute_id": self.institute_id,
             "title": self.title,
             "description": self.description,
+            "rules": self.rules,
             "date": self.date.isoformat() if self.date else None,
             "end_date": self.end_date.isoformat() if self.end_date else None,
             "location": self.location,

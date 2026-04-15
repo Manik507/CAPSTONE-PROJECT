@@ -188,6 +188,14 @@
         });
 
         async function approveInstitute(id, action, reason = "") {
+            if (!reason) {
+                reason = prompt(`Please provide a reason to ${action.toLowerCase()} this institute:`);
+                if (reason === null) return; // User cancelled
+                if (!reason.trim()) {
+                    showToast('Reason is required', 'error');
+                    return;
+                }
+            }
             try {
                 await api.post(`/admin/institutes/approve/${id}`, { action, reason });
                 showToast(`Institute ${action.toLowerCase()}!`, 'success');
@@ -201,6 +209,14 @@
         }
 
         async function approveEvent(id, action, reason = "") {
+            if (!reason) {
+                reason = prompt(`Please provide a reason to ${action.toLowerCase()} this event:`);
+                if (reason === null) return; // User cancelled
+                if (!reason.trim()) {
+                    showToast('Reason is required', 'error');
+                    return;
+                }
+            }
             try {
                 await api.post(`/admin/events/approve/${id}`, { action, reason });
                 showToast(`Event ${action.toLowerCase()}!`, 'success');

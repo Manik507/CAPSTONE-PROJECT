@@ -26,8 +26,18 @@ def upload_image_to_appwrite(file):
         endpoint = current_app.config["APPWRITE_ENDPOINT"]
         project_id = current_app.config["APPWRITE_PROJECT_ID"]
         
-        # Determine extension and generate a unique file ID
-        ext = file.filename.rsplit(".", 1)[1].lower() if "." in file.filename else "png"
+        # Determine extension based on mimetype
+        import mimetypes
+        mimetype = getattr(file, 'mimetype', '') or 'image/png'
+        ext = mimetypes.guess_extension(mimetype)
+        if not ext:
+            ext = file.filename.rsplit(".", 1)[1].lower() if file.filename and "." in file.filename else "png"
+        else:
+            ext = ext.lstrip('.') # remove the leading dot
+            
+        # Fix common extension mismatch for appwrite
+        if ext == 'jpe': ext = 'jpeg'
+        
         file_id = f"{uuid.uuid4().hex}"
         
         # Read the file content
@@ -46,7 +56,8 @@ def upload_image_to_appwrite(file):
         
         # Construct the file view URL
         # Format: [ENDPOINT]/storage/buckets/[BUCKET_ID]/files/[FILE_ID]/view?project=[PROJECT_ID]
-        view_url = f"{endpoint}/storage/buckets/{bucket_id}/files/{result['$id']}/view?project={project_id}"
+        res_id = getattr(result, 'id', getattr(result, '$id', None)) if not isinstance(result, dict) else result.get('$id', result.get('id'))
+        view_url = f"{endpoint}/storage/buckets/{bucket_id}/files/{res_id}/view?project={project_id}"
         
         return view_url
 

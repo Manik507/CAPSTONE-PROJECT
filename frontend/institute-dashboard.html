@@ -96,6 +96,10 @@
                                 <label for="event-desc">Description</label>
                                 <textarea id="event-desc" placeholder="Describe the event…"></textarea>
                             </div>
+                            <div class="form-group">
+                                <label for="event-rules">Rules</label>
+                                <textarea id="event-rules" placeholder="List the rules and regulations for the competition…"></textarea>
+                            </div>
                             <div class="form-group-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
                                 <div class="form-group">
                                     <label for="event-date" style="font-weight:700; color:var(--accent-blue);">Start Date & Time</label>
@@ -675,6 +679,7 @@
                 const formData = new FormData();
                 formData.append('title', document.getElementById('event-title').value.trim());
                 formData.append('description', document.getElementById('event-desc').value.trim());
+                formData.append('rules', document.getElementById('event-rules').value.trim());
                 formData.append('date', new Date(dateVal).toISOString());
                 formData.append('end_date', new Date(endDateVal).toISOString());
                 formData.append('location', document.getElementById('event-location').value.trim());
