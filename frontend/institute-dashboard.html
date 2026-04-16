@@ -229,6 +229,13 @@
                         </div>
                         <hr class="mb-3 mt-3">
                         
+                        <!-- Declared Results View -->
+                        <div id="results-declared-view" class="hidden">
+                             <h3>Hall of Fame Already Published <i data-lucide="check-circle" style="color:var(--accent-green); width:20px;height:20px;vertical-align:middle;"></i></h3>
+                             <p class="mb-3 opacity-70">The results for this event have been finalized and cannot be changed.</p>
+                             <div id="results-declared-list" class="mb-3"></div>
+                        </div>
+
                         <!-- Step 1: Select -->
                         <div id="results-step-1" class="hidden">
                             <h3>Step 1: Select Winners</h3>
@@ -651,6 +658,7 @@ a
                         <tr>
                             <td><strong>${e.title}</strong></td>
                             <td>${formatDate(e.date)}</td>
+                            <td>${e.location || 'Online'}</td>
                             <td>
                                 ${statusBadge(e.approval_status)}
                                 ${e.approval_status === 'REJECTED' && e.admin_remarks ? `<div style="font-size: 0.75rem; color: var(--accent-red); margin-top: 4px;"><strong>Reason:</strong> ${e.admin_remarks}</div>` : ''}
@@ -924,10 +932,49 @@ a
         let currentResultsStep = 1;
 
         async function startResultsWorkflow(eventId) {
+            document.getElementById('results-declared-view')?.classList.add('hidden');
             if (!eventId) {
                 document.getElementById('results-step-1').classList.add('hidden');
+                document.getElementById('results-step-2').classList.add('hidden');
+                document.getElementById('results-step-3').classList.add('hidden');
                 return;
             }
+
+            const event = myEvents.find(e => e.id == eventId);
+            if (event && event.results_locked) {
+                document.querySelectorAll('[id^="results-step-"]').forEach(el => el.classList.add('hidden'));
+                const declaredView = document.getElementById('results-declared-view');
+                if (declaredView) {
+                    declaredView.classList.remove('hidden');
+                    const dl = document.getElementById('results-declared-list');
+                    dl.innerHTML = '<div class="spinner"></div>';
+                    try {
+                        const data = await api.getEventResults(eventId);
+                        const results = data.results || [];
+                        dl.innerHTML = `
+                            <div class="table-container">
+                                <table>
+                                    <thead><tr><th>Rank</th><th>Name</th><th>Prize</th><th>Description</th></tr></thead>
+                                    <tbody>
+                                        ${results.map(r => `
+                                            <tr>
+                                                <td><strong>#${r.rank}</strong></td>
+                                                <td><a href="#" class="profile-link" onclick="viewProfile(${r.user_id}); return false;" style="color:var(--accent-blue);text-decoration:none;"><strong>${r.user_name || 'Participant'}</strong></a></td>
+                                                <td><span class="badge" style="background:var(--accent-amber);color:#000;">${r.prize_name}</span></td>
+                                                <td>${r.prize_description || '-'}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                    } catch (err) {
+                        dl.innerHTML = '<div class="alert alert-error">Failed to load results.</div>';
+                    }
+                }
+                return;
+            }
+
             goToResultsStep(1);
             const list = document.getElementById('results-participants-list');
             list.innerHTML = '<div class="spinner"></div>';
@@ -1058,7 +1105,6 @@ a
 
         async function viewProfile(userId) {
             try {
-                searchDropdown.classList.add('hidden');
                 const data = await api.getUserProfile(userId);
                 const p = data.profile;
                 document.getElementById('prof-name').textContent = p.full_name;

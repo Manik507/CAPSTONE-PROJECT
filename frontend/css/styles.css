@@ -1177,3 +1177,9 @@ tr:hover td {
 .password-toggle:hover {
     color: var(--text-primary);
 }
+
+/* Hide native browser password reveal icons */
+input::-ms-reveal,
+input::-ms-clear {
+    display: none;
+}
