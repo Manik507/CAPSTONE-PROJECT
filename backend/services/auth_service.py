@@ -52,6 +52,9 @@ def register_user(db, email, username, password, role, full_name, phone_number=N
         # For non-participants, if they provide one, make it 10
         raise ApiError("Phone number must be at least 10 digits", status_code=400)
 
+    if not phone_number:
+        phone_number = None
+
     user = User(email=email, username=username, role=role, full_name=full_name, phone_number=phone_number)
     user.set_password(password)
 

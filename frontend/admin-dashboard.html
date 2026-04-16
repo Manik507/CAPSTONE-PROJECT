@@ -228,6 +228,18 @@
             }
         }
 
+        async function deleteEvent(id) {
+            if (!confirm('Are you sure you want to permanently delete this event from the platform? This action cannot be undone.')) return;
+            try {
+                await api.delete(`/admin/events/${id}`);
+                showToast('Event deleted successfully!', 'success');
+                loadAllEvents();
+                loadStats();
+            } catch (err) {
+                showToast(err.message || 'Failed to delete event', 'error');
+            }
+        }
+
         async function loadStats() {
             try {
                 const data = await api.get('/admin/stats');
@@ -348,7 +360,7 @@
                 document.getElementById('all-evt-loading').classList.add('hidden');
 
                 document.getElementById('all-evt-list').innerHTML = `<div class="table-container"><table>
-                    <thead><tr><th>Title</th><th>Institute</th><th>Date</th><th>Status</th></tr></thead>
+                    <thead><tr><th>Title</th><th>Institute</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
                     <tbody>
                     ${items.map(e => `
                         <tr>
@@ -356,7 +368,10 @@
                             <td>${e.institute_name || '-'}</td>
                             <td>${formatDate(e.date)}</td>
                             <td>${statusBadge(e.approval_status)}</td>
-                            <td><button class="btn btn-secondary btn-sm" onclick='showDetails("event", ${e.id}, ${JSON.stringify(e).replace(/'/g, "&apos;")})'>${icon('search',14)} View</button></td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" onclick='showDetails("event", ${e.id}, ${JSON.stringify(e).replace(/'/g, "&apos;")})'>${icon('search',14)} View</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteEvent(${e.id})">${icon('trash-2',14)} Delete</button>
+                            </td>
                         </tr>
                     `).join('')}
                     </tbody>

@@ -392,7 +392,7 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(mapPicker);
-
+a
             mapPicker.on('click', (e) => {
                 const { lat, lng } = e.latlng;
                 if (pickerMarker) {
@@ -510,7 +510,8 @@
                 }
                 if (inst.approval_status === 'REJECTED') {
                     statusBanner.classList.remove('hidden');
-                    statusBanner.innerHTML = `<div class="alert alert-error">${icon('x-circle',16)} Your application was rejected. Contact support.</div>`;
+                    const reason = inst.admin_remarks ? `<div style="margin-top: 8px;"><strong>Reason:</strong> ${inst.admin_remarks}</div>` : '';
+                    statusBanner.innerHTML = `<div class="alert alert-error">${icon('x-circle',16)} Your application was rejected.${reason} <br><br>Contact support.</div>`;
                     adminContent.classList.add('hidden');
                     return;
                 }
@@ -650,8 +651,10 @@
                         <tr>
                             <td><strong>${e.title}</strong></td>
                             <td>${formatDate(e.date)}</td>
-                            <td>${e.location}</td>
-                            <td>${statusBadge(e.approval_status)}</td>
+                            <td>
+                                ${statusBadge(e.approval_status)}
+                                ${e.approval_status === 'REJECTED' && e.admin_remarks ? `<div style="font-size: 0.75rem; color: var(--accent-red); margin-top: 4px;"><strong>Reason:</strong> ${e.admin_remarks}</div>` : ''}
+                            </td>
                         </tr>
                     `).join('')}
                     </tbody>

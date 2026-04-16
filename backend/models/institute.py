@@ -12,6 +12,7 @@ class Institute(db.Model):
     email = db.Column(db.String(255), nullable=False)
     details = db.Column(db.Text, nullable=True)
     approval_status = db.Column(db.String(20), nullable=False, default="PENDING")  # PENDING | APPROVED | REJECTED
+    admin_remarks = db.Column(db.Text, nullable=True)
 
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
@@ -27,5 +28,6 @@ class Institute(db.Model):
             "email": self.email,
             "details": self.details,
             "approval_status": self.approval_status,
+            "admin_remarks": self.admin_remarks,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

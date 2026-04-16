@@ -17,6 +17,7 @@ class Event(db.Model):
     image_url = db.Column(db.Text, nullable=True)
     qr_code_url = db.Column(db.Text, nullable=True)
     approval_status = db.Column(db.String(20), nullable=False, default="PENDING")  # PENDING | APPROVED | REJECTED
+    admin_remarks = db.Column(db.Text, nullable=True)
     
     # Advanced Event Management
     end_date = db.Column(db.DateTime(timezone=True), nullable=False)
@@ -51,6 +52,7 @@ class Event(db.Model):
             "image_url": self.image_url,
             "qr_code_url": self.qr_code_url,
             "approval_status": self.approval_status,
+            "admin_remarks": self.admin_remarks,
             "results_locked": self.results_locked,
             "is_completed": self._is_completed(),
             "institute_name": self.institute.name if self.institute else None,

@@ -361,8 +361,23 @@ def get_all_volunteers():
 @jwt_required()
 @role_required("INSTITUTE")
 def get_platform_volunteers():
-    """Returns all users registered as VOLUNTEER on the entire platform."""
-    vols = User.query.filter_by(role="VOLUNTEER").all()
+    """Returns only volunteers previously assigned to events by this institute."""
+    from models.volunteer import Volunteer
+    uid = int(current_user_id())
+    institute = Institute.query.filter_by(user_id=uid).first()
+    
+    if not institute:
+        return jsonify({"volunteers": []}), 200
+        
+    # Find all user IDs assigned as volunteers to this institute's events
+    vol_assignments = Volunteer.query.filter_by(institute_id=institute.id).all()
+    user_ids = list({v.user_id for v in vol_assignments})
+    
+    if not user_ids:
+        return jsonify({"volunteers": []}), 200
+
+    vols = User.query.filter(User.id.in_(user_ids)).all()
+    
     return jsonify({
         "volunteers": [{
             "id": u.id,

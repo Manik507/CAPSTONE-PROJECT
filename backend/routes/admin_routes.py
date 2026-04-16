@@ -46,6 +46,7 @@ def approve_institute(institute_id):
         raise ApiError("action must be APPROVED or REJECTED", status_code=400)
 
     institute.approval_status = action
+    institute.admin_remarks = reason
     
     # Record Activity Log
     from models.activity_log import ActivityLog
@@ -98,6 +99,7 @@ def approve_event(event_id):
         raise ApiError("action must be APPROVED or REJECTED", status_code=400)
 
     event.approval_status = action
+    event.admin_remarks = reason
     
     # Record Activity Log
     from models.activity_log import ActivityLog
@@ -143,6 +145,34 @@ def approve_event(event_id):
 def all_events():
     events = Event.query.order_by(Event.created_at.desc()).all()
     return jsonify({"events": [e.to_dict() for e in events]}), 200
+
+@admin_bp.delete("/events/<int:event_id>")
+@jwt_required()
+@role_required("ADMIN")
+def delete_event(event_id):
+    from models.event import Event
+    from models.activity_log import ActivityLog
+    
+    event = Event.query.get(event_id)
+    if not event:
+        raise ApiError("Event not found", status_code=404)
+        
+    title = event.title
+    uid = int(current_user_id())
+    
+    db.session.delete(event)
+    
+    log = ActivityLog(
+        admin_id=uid,
+        action_type="EVENT_DELETED",
+        target_id=event_id,
+        target_name=title,
+        details=f"Event '{title}' was permanently deleted by admin."
+    )
+    db.session.add(log)
+    db.session.commit()
+    
+    return jsonify({"message": f"Event '{title}' has been successfully deleted."}), 200
 
 
 @admin_bp.get("/participants/all")
