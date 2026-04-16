@@ -142,6 +142,7 @@ def my_events():
         event_data = p.event.to_dict() if p.event else {}
         event_data["participation_id"] = p.id
         event_data["payment_status"] = p.payment_status
+        event_data["registration_id"] = p.registration_id
         events.append(event_data)
     return jsonify({"events": events}), 200
 

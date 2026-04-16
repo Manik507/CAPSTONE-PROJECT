@@ -200,9 +200,14 @@
                                         <span>${icon('calendar',14)} ${formatDate(e.date)}</span>
                                         <span>${icon('map-pin',14)} ${e.location}</span>
                                     </div>
-                                    <div class="badge badge-success mb-1" style="font-size:0.75rem; background:rgba(16, 185, 129, 0.1); border:1px solid var(--accent-green); color:var(--accent-green); font-family:monospace;">
-                                        ID: ${e.registration_id || 'PENDING'}
-                                    </div>
+                                    ${(e.payment_status || '').toUpperCase() === 'PAID' ? 
+                                        `<div class="badge badge-success mb-1" style="font-size:0.75rem; background:rgba(16, 185, 129, 0.1); border:1px solid var(--accent-green); color:var(--accent-green); font-family:monospace;">
+                                            ID: ${e.registration_id}
+                                        </div>` : 
+                                        `<div class="badge badge-pending mb-1" style="font-size:0.75rem; font-family:monospace;">
+                                            STATUS: ${e.payment_status || 'PENDING'}
+                                        </div>`
+                                    }
                                     <div class="btn-group mt-1">
                                         <a href="event.html?id=${e.id}" class="btn btn-secondary btn-sm">View</a>
                                     </div>
