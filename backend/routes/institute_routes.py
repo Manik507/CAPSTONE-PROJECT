@@ -386,3 +386,39 @@ def get_platform_volunteers():
             "username": u.username
         } for u in vols]
     }), 200
+
+@institute_bp.post("/contact-admin")
+@jwt_required()
+@role_required("INSTITUTE")
+def contact_admin():
+    from models.admin_message import AdminMessage
+    uid = int(current_user_id())
+    institute = Institute.query.filter_by(user_id=uid).first()
+    if not institute:
+        raise ApiError("No institute profile found", status_code=404)
+        
+    data = request.get_json(silent=True) or {}
+    message_text = data.get("message", "").strip()
+    
+    if not message_text:
+        raise ApiError("Message content is required", status_code=400)
+        
+    admin_message = AdminMessage(institute_id=institute.id, message=message_text)
+    db.session.add(admin_message)
+    db.session.commit()
+    
+    return jsonify({"message": "Message sent to Admin successfully", "admin_message": admin_message.to_dict()}), 201
+
+@institute_bp.get("/messages")
+@jwt_required()
+@role_required("INSTITUTE")
+def get_institute_messages():
+    from models.admin_message import AdminMessage
+    uid = int(current_user_id())
+    institute = Institute.query.filter_by(user_id=uid).first()
+    if not institute:
+        raise ApiError("No institute profile found", status_code=404)
+        
+    messages = AdminMessage.query.filter_by(institute_id=institute.id).order_by(AdminMessage.created_at.desc()).all()
+    # include_admin_details is False by default so they only see "Admin"
+    return jsonify({"messages": [m.to_dict(include_admin_details=False) for m in messages]}), 200

@@ -68,6 +68,7 @@
                 <button class="tab-btn" data-tab="updates-tab"><i data-lucide="megaphone"></i> Post Update</button>
                 <button class="tab-btn role-institute-only" data-tab="results-tab"><i data-lucide="medal"></i> Result & Prizes</button>
                 <button class="tab-btn role-institute-only" data-tab="volunteers-tab"><i data-lucide="shield"></i> Volunteers</button>
+                <button class="tab-btn role-institute-only" data-tab="contact-admin-tab"><i data-lucide="message-square"></i> Contact Admin</button>
                 <button class="tab-btn role-institute-only" data-tab="profile-settings-tab"><i data-lucide="building"></i> Institute Profile</button>
             </div>
 
@@ -323,6 +324,30 @@
                 </div>
             </div>
 
+            <!-- Contact Admin Tab -->
+            <div class="tab-content" id="contact-admin-tab">
+                <div class="section-panel">
+                    <div class="section-panel-header">
+                        <h2><i data-lucide="message-square" style="width:20px;height:20px;"></i> Contact Administrator</h2>
+                    </div>
+                    <div class="section-panel-body">
+                        <div id="contact-alert"></div>
+                        <form id="contact-form" class="mb-3">
+                            <div class="form-group">
+                                <label for="contact-msg">Message</label>
+                                <textarea id="contact-msg" placeholder="Write your message to the Admin here..." required style="min-height: 100px;"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="contact-btn">Send Message</button>
+                        </form>
+                        
+                        <h3 class="mb-2" style="border-bottom: 1px solid var(--border-glass); padding-bottom: 0.5rem;">Message History</h3>
+                        <div id="messages-list">
+                            <div class="text-center py-2 opacity-50">No messages yet.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Profile Settings Tab -->
             <div class="tab-content" id="profile-settings-tab">
                 <div class="section-panel">
@@ -381,6 +406,9 @@
                 }
                 if (btn.dataset.tab === 'volunteers-tab') {
                     loadVolunteers();
+                }
+                if (btn.dataset.tab === 'contact-admin-tab') {
+                    loadAdminMessages();
                 }
                 if (btn.dataset.tab === 'profile-settings-tab') {
                     loadInstituteProfile();
@@ -1320,6 +1348,61 @@ a
                 showToast('PDF Export failed', 'error');
             }
         }
+        async function loadAdminMessages() {
+            try {
+                const data = await api.get('/institutes/messages');
+                const list = data.messages || [];
+                const container = document.getElementById('messages-list');
+                if (list.length === 0) {
+                    container.innerHTML = '<div class="text-center py-2 opacity-50">No messages sent yet.</div>';
+                } else {
+                    container.innerHTML = list.map(m => `
+                        <div class="card mb-2" style="background: rgba(255,255,255,0.02);">
+                            <div class="card-body" style="padding: 1rem;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+                                    <strong>You:</strong>
+                                    <span style="font-size: 0.8rem; color: var(--text-muted);">${formatDateTime(m.created_at)}</span>
+                                </div>
+                                <p style="margin-bottom: 1rem; white-space: pre-wrap;">${m.message}</p>
+                                ${m.reply ? `
+                                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-left: 3px solid var(--accent-blue); border-radius: var(--radius-sm);">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+                                        <strong style="color:var(--accent-blue);">Admin:</strong>
+                                        <span style="font-size: 0.8rem; color: var(--text-muted);">${formatDateTime(m.replied_at)}</span>
+                                    </div>
+                                    <p style="margin:0; white-space: pre-wrap;">${m.reply}</p>
+                                </div>
+                                ` : `<div style="font-size: 0.8rem; color: var(--accent-amber);"><i data-lucide="clock" style="width:12px;height:12px;"></i> Pending Reply...</div>`}
+                            </div>
+                        </div>
+                    `).join('');
+                    refreshIcons();
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('messages-list').innerHTML = '<div class="text-center py-2 text-danger">Failed to load messages</div>';
+            }
+        }
+
+        document.getElementById('contact-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('contact-btn');
+            const msgInput = document.getElementById('contact-msg');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            try {
+                await api.post('/institutes/contact-admin', { message: msgInput.value });
+                showToast('Message sent to Admin', 'success');
+                msgInput.value = '';
+                loadAdminMessages();
+            } catch (err) {
+                document.getElementById('contact-alert').innerHTML = `<div class="alert alert-error">${err.message || 'Failed to send message'}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Message';
+            }
+        });
     </script>
 
     <!-- Profile Modal Overlay -->

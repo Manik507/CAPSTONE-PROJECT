@@ -232,3 +232,37 @@ def create_admin():
     if created:
         return jsonify({"message": "Admin created successfully", "admin": user.to_dict()}), 201
     return jsonify({"message": "Admin already exists", "admin": user.to_dict()}), 200
+
+@admin_bp.get("/messages")
+@jwt_required()
+@role_required("ADMIN")
+def get_all_messages():
+    from models.admin_message import AdminMessage
+    messages = AdminMessage.query.order_by(AdminMessage.created_at.desc()).all()
+    # include_admin_details is True so admins can see which admin replied
+    return jsonify({"messages": [m.to_dict(include_admin_details=True) for m in messages]}), 200
+
+@admin_bp.post("/messages/<int:message_id>/reply")
+@jwt_required()
+@role_required("ADMIN")
+def reply_to_message(message_id):
+    from models.admin_message import AdminMessage
+    from datetime import datetime, timezone
+    
+    data = request.get_json(silent=True) or {}
+    reply_text = data.get("reply", "").strip()
+    
+    if not reply_text:
+        raise ApiError("Reply content is required", status_code=400)
+        
+    message = AdminMessage.query.get(message_id)
+    if not message:
+        raise ApiError("Message not found", status_code=404)
+        
+    message.reply = reply_text
+    message.replied_by_admin_id = int(current_user_id())
+    message.replied_at = datetime.now(timezone.utc)
+    
+    db.session.commit()
+    
+    return jsonify({"message": "Reply sent successfully", "admin_message": message.to_dict(include_admin_details=True)}), 200

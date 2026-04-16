@@ -78,6 +78,7 @@
             <button class="tab-btn" data-tab="all-inst-tab"><i data-lucide="clipboard-list"></i> All Institutes</button>
             <button class="tab-btn" data-tab="all-evt-tab"><i data-lucide="clipboard-list"></i> All Events</button>
             <button class="tab-btn" data-tab="all-part-tab"><i data-lucide="users"></i> All Participants</button>
+            <button class="tab-btn" data-tab="messages-tab"><i data-lucide="message-square"></i> Institute Messages</button>
             <button class="tab-btn" data-tab="create-admin-tab"><i data-lucide="user-plus"></i> Create Admin</button>
         </div>
 
@@ -119,6 +120,12 @@
         <div class="tab-content" id="all-part-tab">
             <div id="all-part-loading" class="text-center"><div class="spinner"></div></div>
             <div id="all-part-list"></div>
+        </div>
+
+        <!-- Institute Messages -->
+        <div class="tab-content" id="messages-tab">
+            <div id="messages-loading" class="text-center"><div class="spinner"></div></div>
+            <div id="messages-list"></div>
         </div>
 
         <!-- Create Admin -->
@@ -441,8 +448,68 @@
                 loadPendingEvents(),
                 loadAllInstitutes(),
                 loadAllEvents(),
-                loadAllParticipants()
+                loadAllParticipants(),
+                loadAllMessages()
             ]);
+        }
+
+        async function loadAllMessages() {
+            try {
+                const data = await api.get('/admin/messages');
+                const items = data.messages || [];
+                document.getElementById('messages-loading').classList.add('hidden');
+
+                if (items.length === 0) {
+                    document.getElementById('messages-list').innerHTML = '<div class="empty-state"><div class="empty-icon"><i data-lucide="message-square-check" style="width:64px;height:64px;"></i></div><h3>No Messages</h3><p>All caught up!</p></div>';
+                    refreshIcons();
+                    return;
+                }
+
+                document.getElementById('messages-list').innerHTML = `<div class="cards-grid">
+                    ${items.map(m => `
+                        <div class="card" style="padding: 1.5rem;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem; align-items:center;">
+                                <strong><i data-lucide="building" style="width:14px;height:14px;"></i> ${m.institute_name || `Institute #${m.institute_id}`}</strong>
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">${formatDateTime(m.created_at)}</span>
+                            </div>
+                            <p style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 1rem; white-space:pre-wrap;">${m.message}</p>
+                            ${m.reply ? `
+                                <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-left: 3px solid var(--accent-green); border-radius: var(--radius-sm);">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+                                        <strong style="color:var(--accent-green);">Replied by: ${m.replied_by_admin_name || 'Admin'}</strong>
+                                        <span style="font-size: 0.8rem; color: var(--text-muted);">${formatDateTime(m.replied_at)}</span>
+                                    </div>
+                                    <p style="margin:0; white-space:pre-wrap;">${m.reply}</p>
+                                </div>
+                            ` : `
+                                <div>
+                                    <textarea id="reply-input-${m.id}" class="form-control" placeholder="Write reply..." style="width: 100%; min-height: 80px; padding: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); border-radius:var(--radius-sm); color:var(--text-primary);"></textarea>
+                                    <button class="btn btn-primary btn-sm" onclick="replyToMessage(${m.id})">Send Reply</button>
+                                </div>
+                            `}
+                        </div>
+                    `).join('')}
+                </div>`;
+                refreshIcons();
+            } catch (err) {
+                document.getElementById('messages-loading').classList.add('hidden');
+            }
+        }
+
+        async function replyToMessage(msgId) {
+            const input = document.getElementById(`reply-input-${msgId}`);
+            const replyText = input.value.trim();
+            if (!replyText) {
+                showToast('Please type a reply.', 'error');
+                return;
+            }
+            try {
+                await api.post(`/admin/messages/${msgId}/reply`, { reply: replyText });
+                showToast('Reply sent successfully!', 'success');
+                loadAllMessages();
+            } catch (err) {
+                showToast(err.message || 'Failed to send reply', 'error');
+            }
         }
 
         // Details Modal Logic
